@@ -1,0 +1,2218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>JNTUA LABS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#080c14;
+  --bg2:#0d1220;
+  --bg3:#111827;
+  --bg4:#1a2236;
+  --surface:#0f172a;
+  --surface2:#162032;
+  --border:#1e2d45;
+  --border2:#253552;
+  --accent:#3b82f6;
+  --accent2:#60a5fa;
+  --accent3:#93c5fd;
+  --neon:#06b6d4;
+  --neon2:#22d3ee;
+  --green:#10b981;
+  --purple:#8b5cf6;
+  --pink:#ec4899;
+  --amber:#f59e0b;
+  --red:#ef4444;
+  --text:#e2e8f0;
+  --text2:#94a3b8;
+  --text3:#64748b;
+  --font:'Space Grotesk',sans-serif;
+  --mono:'JetBrains Mono',monospace;
+  --display:'Syne',sans-serif;
+}
+:root.light-theme{
+  --bg:#f8fafc;
+  --bg2:#f1f5f9;
+  --bg3:#e2e8f0;
+  --bg4:#cbd5e1;
+  --surface:#ffffff;
+  --surface2:#f8fafc;
+  --border:#e2e8f0;
+  --border2:#cbd5e1;
+  --text:#0f172a;
+  --text2:#475569;
+  --text3:#64748b;
+}
+body{background:var(--bg);color:var(--text);font-family:var(--font);overflow-x:hidden;min-height:100vh}
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:var(--bg2)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+#root{min-height:100vh}
+
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+@keyframes pulse-ring{0%{transform:scale(1);opacity:0.6}100%{transform:scale(1.6);opacity:0}}
+@keyframes slide-up{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fade-in{from{opacity:0}to{opacity:1}}
+@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+@keyframes rotate{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+@keyframes scan{0%{top:0}100%{top:100%}}
+@keyframes glow-pulse{0%,100%{box-shadow:0 0 20px rgba(59,130,246,0.3)}50%{box-shadow:0 0 40px rgba(59,130,246,0.6)}}
+
+.anim-up{animation:slide-up 0.6s ease forwards}
+.anim-fade{animation:fade-in 0.4s ease forwards}
+
+.btn-primary{
+  background:linear-gradient(135deg,#2563eb,#7c3aed);
+  color:#fff;border:none;padding:12px 28px;border-radius:10px;
+  font-family:var(--font);font-size:15px;font-weight:600;cursor:pointer;
+  transition:all 0.3s;position:relative;overflow:hidden;
+}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(99,102,241,0.4)}
+.btn-primary::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,0.1),transparent);opacity:0;transition:opacity 0.3s}
+.btn-primary:hover::after{opacity:1}
+
+.btn-ghost{background:transparent;color:var(--text2);border:1px solid var(--border2);padding:10px 22px;border-radius:8px;font-family:var(--font);font-size:14px;cursor:pointer;transition:all 0.2s}
+.btn-ghost:hover{border-color:var(--accent);color:var(--accent2);background:rgba(59,130,246,0.05)}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:16px;transition:all 0.3s}
+.card:hover{border-color:var(--border2)}
+
+.glass{background:rgba(15,23,42,0.7);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.06)}
+
+.badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;letter-spacing:0.5px}
+.badge-blue{background:rgba(59,130,246,0.15);color:#60a5fa;border:1px solid rgba(59,130,246,0.25)}
+.badge-green{background:rgba(16,185,129,0.15);color:#34d399;border:1px solid rgba(16,185,129,0.25)}
+.badge-purple{background:rgba(139,92,246,0.15);color:#a78bfa;border:1px solid rgba(139,92,246,0.25)}
+.badge-amber{background:rgba(245,158,11,0.15);color:#fbbf24;border:1px solid rgba(245,158,11,0.25)}
+.badge-red{background:rgba(239,68,68,0.15);color:#f87171;border:1px solid rgba(239,68,68,0.25)}
+
+.grid-dots{background-image:radial-gradient(circle,rgba(59,130,246,0.15) 1px,transparent 1px);background-size:32px 32px}
+
+.tag{padding:2px 8px;border-radius:4px;font-size:11px;font-family:var(--mono);font-weight:500}
+
+input[type=text],input[type=email],input[type=password]{
+  background:var(--bg3);border:1px solid var(--border);border-radius:10px;
+  color:var(--text);font-family:var(--font);font-size:14px;padding:12px 16px;width:100%;
+  transition:all 0.2s;outline:none;
+}
+input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(59,130,246,0.15)}
+label{font-size:13px;color:var(--text2);font-weight:500;display:block;margin-bottom:6px}
+
+.sidebar-link{display:flex;align-items:center;gap:12px;padding:10px 16px;border-radius:10px;cursor:pointer;transition:all 0.2s;color:var(--text2);font-size:14px;font-weight:500;text-decoration:none}
+.sidebar-link:hover,.sidebar-link.active{background:rgba(59,130,246,0.1);color:var(--accent2)}
+.sidebar-link.active{border-left:3px solid var(--accent)}
+.sidebar-link svg{width:18px;height:18px;flex-shrink:0}
+
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px}
+.stat-value{font-size:28px;font-weight:700;font-family:var(--display);margin:4px 0}
+.stat-label{font-size:12px;color:var(--text3);font-weight:500;text-transform:uppercase;letter-spacing:0.8px}
+.stat-delta{font-size:12px;font-weight:600}
+.stat-delta.up{color:var(--green)}
+.stat-delta.down{color:var(--red)}
+
+.progress-bar{background:var(--bg3);border-radius:100px;height:6px;overflow:hidden}
+.progress-fill{height:100%;border-radius:100px;transition:width 0.8s ease}
+
+.lang-chip{display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:10px;border:1px solid var(--border);background:var(--surface);cursor:pointer;transition:all 0.2s;font-size:13px;font-weight:500}
+.lang-chip:hover,.lang-chip.selected{border-color:var(--accent);background:rgba(59,130,246,0.08);color:var(--accent2)}
+
+.code-line{font-family:var(--mono);font-size:13px;line-height:1.7;padding:0 16px}
+.code-kw{color:#c792ea}
+.code-fn{color:#82aaff}
+.code-str{color:#c3e88d}
+.code-num{color:#f78c6c}
+.code-cm{color:#546e7a}
+.code-type{color:#ffcb6b}
+.line-num{color:var(--text3);min-width:36px;display:inline-block;text-align:right;margin-right:16px;user-select:none;font-size:12px}
+
+.tab{display:flex;align-items:center;gap:8px;padding:8px 16px;border-right:1px solid var(--border);cursor:pointer;font-size:13px;color:var(--text2);transition:all 0.2s;white-space:nowrap}
+.tab:hover{background:rgba(255,255,255,0.03)}
+.tab.active{background:var(--bg);color:var(--text);border-bottom:2px solid var(--accent)}
+.tab .close{opacity:0;margin-left:4px;font-size:11px;transition:opacity 0.2s}
+.tab:hover .close{opacity:1}
+
+.notif{display:flex;align-items:flex-start;gap:12px;padding:14px;border-radius:10px;border:1px solid var(--border);margin-bottom:10px;transition:all 0.2s;cursor:pointer}
+.notif:hover{border-color:var(--border2);background:rgba(255,255,255,0.02)}
+.notif-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:4px}
+
+.table-row{display:grid;align-items:center;padding:12px 16px;border-bottom:1px solid var(--border);transition:background 0.15s;cursor:pointer}
+.table-row:hover{background:rgba(255,255,255,0.02)}
+.table-row:last-child{border-bottom:none}
+
+.tooltip{position:relative}
+.tooltip:hover::before{content:attr(data-tip);position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:var(--bg4);border:1px solid var(--border2);color:var(--text);padding:5px 10px;border-radius:6px;font-size:12px;white-space:nowrap;pointer-events:none;z-index:100}
+
+.hero-orb{position:absolute;border-radius:50%;filter:blur(80px);pointer-events:none}
+.grid-bg{background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);background-size:40px 40px}
+
+.chip-glow{box-shadow:0 0 0 1px var(--accent),0 0 20px rgba(59,130,246,0.3)}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const {useState,useEffect,useRef,useCallback}=React;
+
+// ─── ICONS ─────────────────────────────────────────────────────────
+const Icon=({name,size=18,color='currentColor',style={}})=>{
+  const icons={
+    home:<><path d="M3 12L12 3l9 9"/><path d="M9 21V12h6v9"/></>,
+    code:<><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></>,
+    flask:<><path d="M9 3h6v8l4 9H5l4-9V3z"/><path d="M7 3h10"/></>,
+    users:<><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></>,
+    chart:<><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></>,
+    cpu:<><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M9 1v3M15 1v3M9 20v3M15 20v3M1 9h3M1 15h3M20 9h3M20 15h3"/></>,
+    bot:<><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/><line x1="8" y1="16" x2="8" y2="16"/><line x1="16" y1="16" x2="16" y2="16"/></>,
+    trophy:<><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17"/><path d="M14 14.66V17"/><path d="M8 21h8"/><rect x="6" y="2" width="12" height="13" rx="2"/></>,
+    settings:<><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></>,
+    logout:<><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></>,
+    play:<><polygon points="5 3 19 12 5 21 5 3"/></>,
+    save:<><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></>,
+    terminal:<><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></>,
+    book:<><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></>,
+    check:<><polyline points="20 6 9 17 4 12"/></>,
+    x:<><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></>,
+    plus:<><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></>,
+    send:<><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></>,
+    bell:<><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></>,
+    search:<><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></>,
+    eye:<><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></>,
+    lock:<><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></>,
+    star:<><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></>,
+    zap:<><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></>,
+    globe:<><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></>,
+    shield:<><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></>,
+    activity:<><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></>,
+    award:<><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></>,
+    layers:<><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></>,
+    clock:<><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></>,
+    file:<><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></>,
+    folder:<><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></>,
+    edit:<><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></>,
+    trash:<><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></>,
+    grid:<><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></>,
+    menu:<><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></>,
+    chevronRight:<><polyline points="9 18 15 12 9 6"/></>,
+    maximize:<><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></>,
+    copy:<><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></>,
+    upload:<><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></>,
+    download:<><polyline points="8 17 12 21 16 17"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.88 18.09A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.29"/></>,
+  };
+  return(
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={style}>
+      {icons[name]}
+    </svg>
+  );
+};
+
+// ─── LANGUAGE DATA ─────────────────────────────────────────────────
+const LANGUAGES=[
+  {id:'c',name:'C',color:'#60a5fa',icon:'⚙️',tagColor:'#2563eb',bg:'rgba(37,99,235,0.1)',desc:'Systems programming'},
+  {id:'cpp',name:'C++',color:'#a78bfa',icon:'🔷',tagColor:'#7c3aed',bg:'rgba(124,58,237,0.1)',desc:'Object-oriented'},
+  {id:'java',name:'Java',color:'#fb923c',icon:'☕',tagColor:'#ea580c',bg:'rgba(234,88,12,0.1)',desc:'Enterprise grade'},
+  {id:'python',name:'Python',color:'#34d399',icon:'🐍',tagColor:'#059669',bg:'rgba(5,150,105,0.1)',desc:'Data & AI'},
+  {id:'js',name:'JavaScript',color:'#fbbf24',icon:'⚡',tagColor:'#d97706',bg:'rgba(217,119,6,0.1)',desc:'Web & Node.js'},
+];
+
+const CODE_SAMPLES={
+  python:`# Fibonacci Sequence — Python
+def fibonacci(n):
+    """Generate Fibonacci sequence up to n terms."""
+    if n <= 0:
+        return []
+    elif n == 1:
+        return [0]
+    
+    sequence = [0, 1]
+    while len(sequence) < n:
+        next_val = sequence[-1] + sequence[-2]
+        sequence.append(next_val)
+    
+    return sequence
+
+# Main execution
+if __name__ == "__main__":
+    n = int(input("Enter number of terms: "))
+    result = fibonacci(n)
+    
+    print(f"Fibonacci sequence ({n} terms):")
+    print(" → ".join(map(str, result)))`,
+  
+  js:`// Binary Search — JavaScript
+function binarySearch(arr, target) {
+  let left = 0;
+  let right = arr.length - 1;
+  
+  while (left <= right) {
+    const mid = Math.floor((left + right) / 2);
+    
+    if (arr[mid] === target) {
+      return mid;  // Found!
+    } else if (arr[mid] < target) {
+      left = mid + 1;
+    } else {
+      right = mid - 1;
+    }
+  }
+  return -1;  // Not found
+}
+
+const sortedArr = [2, 5, 8, 12, 16, 23, 38, 56, 72, 91];
+const target = 23;
+const idx = binarySearch(sortedArr, target);
+console.log(\`Found \${target} at index: \${idx}\`);`,
+
+  java:`// Bubble Sort — Java
+public class BubbleSort {
+    
+    static void bubbleSort(int[] arr) {
+        int n = arr.length;
+        for (int i = 0; i < n-1; i++) {
+            for (int j = 0; j < n-i-1; j++) {
+                if (arr[j] > arr[j+1]) {
+                    // Swap elements
+                    int temp = arr[j];
+                    arr[j] = arr[j+1];
+                    arr[j+1] = temp;
+                }
+            }
+        }
+    }
+    
+    public static void main(String[] args) {
+        int[] data = {64, 34, 25, 12, 22, 11, 90};
+        bubbleSort(data);
+        System.out.println("Sorted array:");
+        for (int val : data) {
+            System.out.print(val + " ");
+        }
+    }
+}`,
+  c:`// Linked List — C
+#include <stdio.h>
+#include <stdlib.h>
+
+struct Node {
+    int data;
+    struct Node* next;
+};
+
+struct Node* createNode(int val) {
+    struct Node* node = malloc(sizeof(struct Node));
+    node->data = val;
+    node->next = NULL;
+    return node;
+}
+
+void printList(struct Node* head) {
+    struct Node* curr = head;
+    while (curr != NULL) {
+        printf("%d → ", curr->data);
+        curr = curr->next;
+    }
+    printf("NULL\\n");
+}
+
+int main() {
+    struct Node* head = createNode(10);
+    head->next = createNode(20);
+    head->next->next = createNode(30);
+    printList(head);
+    return 0;
+}`,
+  cpp:`// Stack Implementation — C++
+#include <iostream>
+#include <vector>
+using namespace std;
+
+template<typename T>
+class Stack {
+private:
+    vector<T> data;
+    
+public:
+    void push(T val) {
+        data.push_back(val);
+        cout << "Pushed: " << val << endl;
+    }
+    
+    T pop() {
+        if (isEmpty()) throw runtime_error("Stack is empty!");
+        T top = data.back();
+        data.pop_back();
+        return top;
+    }
+    
+    bool isEmpty() { return data.empty(); }
+    int size() { return data.size(); }
+};
+
+int main() {
+    Stack<int> stack;
+    stack.push(10);
+    stack.push(20);
+    stack.push(30);
+    cout << "Popped: " << stack.pop() << endl;
+    return 0;
+}`,
+};
+
+// ─── LANDING PAGE ──────────────────────────────────────────────────
+function LandingPage({onNavigate,onToggleTheme,theme}){
+  const [scrollY,setScrollY]=useState(0);
+  useEffect(()=>{
+    const h=()=>setScrollY(window.scrollY);
+    window.addEventListener('scroll',h);
+    return()=>window.removeEventListener('scroll',h);
+  },[]);
+
+  const features=[
+    {icon:'code',title:'Live Code Execution',desc:'Real-time compilation and execution in isolated Docker containers with full stdin/stdout support.',color:'#3b82f6'},
+    {icon:'bot',title:'AI Learning Assistant',desc:'Integrated AI mentor that guides your thinking without giving away answers — learn by doing.',color:'#8b5cf6'},
+    {icon:'shield',title:'Secure Sandboxing',desc:'Every code execution happens in isolated environments with full security and resource limits.',color:'#10b981'},
+    {icon:'chart',title:'Progress Analytics',desc:'Deep insights into your learning journey with heatmaps, streaks, and performance metrics.',color:'#f59e0b'},
+    {icon:'users',title:'Collaborative Platform',desc:'Faculty manage labs, set timed exams, and track every student\'s coding journey in real-time.',color:'#ec4899'},
+    {icon:'trophy',title:'Leaderboards & Badges',desc:'Gamified learning with achievement badges, coding streaks, and competitive leaderboards.',color:'#06b6d4'},
+  ];
+  const techStack=[
+    {name:'React.js',color:'#61dafb',category:'Frontend'},
+    {name:'Node.js',color:'#68a063',category:'Backend'},
+    {name:'MySQL',color:'#00758f',category:'Database'},
+    {name:'Docker',color:'#2496ed',category:'Execution'},
+    {name:'Socket.io',color:'#010101',bg:'#fff',category:'Real-time'},
+    {name:'OpenAI',color:'#00a67e',category:'AI'},
+    {name:'JWT',color:'#d63aff',category:'Auth'},
+    {name:'Monaco',color:'#0066b8',category:'Editor'},
+  ];
+  const testimonials=[
+    {name:'Priya Sharma',role:'CS Student, IIT Delhi',text:'JNTUA Labs transformed how I learn programming. The AI hints are perfect — they guide without spoiling.',avatar:'PS',color:'#3b82f6'},
+    {name:'Dr. Rahul Verma',role:'Professor, NIT Trichy',text:'Managing lab sessions has never been easier. The analytics give me real insight into student progress.',avatar:'RV',color:'#8b5cf6'},
+    {name:'Ananya Krishnan',role:'Final Year B.Tech',text:'The code editor feels like VS Code but in the browser. Syntax highlighting and autocomplete work perfectly.',avatar:'AK',color:'#10b981'},
+  ];
+
+  return(
+    <div style={{minHeight:'100vh',overflowX:'hidden'}}>
+      {/* NAVBAR */}
+      <nav style={{position:'fixed',top:0,left:0,right:0,zIndex:50,padding:'0 40px',height:'72px',display:'flex',alignItems:'center',justifyContent:'space-between',background:scrollY>50?'rgba(8,12,20,0.95)':'transparent',backdropFilter:scrollY>50?'blur(20px)':'none',borderBottom:scrollY>50?'1px solid rgba(255,255,255,0.06)':'none',transition:'all 0.3s'}}>
+        <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
+          <img src="http://localhost:8000/logo1.webp" alt="JNTUA Labs" style={{width:36,height:36,borderRadius:10,objectFit:'cover'}}/>
+          <span style={{fontFamily:'var(--display)',fontSize:20,fontWeight:700,letterSpacing:'-0.3px'}}>JNTUA Labs</span>
+        </div>
+        <div style={{display:'flex',gap:8,alignItems:'center'}}>
+          <button onClick={onToggleTheme} style={{background:'transparent',border:'1px solid var(--border2)',borderRadius:8,padding:'8px 12px',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',color:'var(--text2)',transition:'all 0.2s',fontSize:16}}>
+            {theme==='dark'?'🌙':'☀️'}
+          </button>
+          <button className="btn-ghost" onClick={()=>onNavigate('login')}>Sign In</button>
+          <button className="btn-primary" onClick={()=>onNavigate('register')}>Get Started</button>
+        </div>
+      </nav>
+
+      {/* HERO */}
+      <section style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',position:'relative',overflow:'hidden',paddingTop:72}}>
+        <div className="hero-orb" style={{width:600,height:600,background:'rgba(59,130,246,0.12)',top:'10%',left:'20%',animation:'float 8s ease-in-out infinite'}}/>
+        <div className="hero-orb" style={{width:400,height:400,background:'rgba(139,92,246,0.1)',top:'30%',right:'15%',animation:'float 10s ease-in-out infinite reverse'}}/>
+        <div className="hero-orb" style={{width:300,height:300,background:'rgba(6,182,212,0.08)',bottom:'20%',left:'10%',animation:'float 7s ease-in-out infinite'}}/>
+        <div style={{position:'absolute',inset:0,backgroundImage:'radial-gradient(circle at 1px 1px,rgba(255,255,255,0.04) 1px,transparent 0)',backgroundSize:'40px 40px'}}/>
+        <div style={{maxWidth:900,margin:'0 auto',padding:'0 40px',textAlign:'center',position:'relative',zIndex:1}}>
+          <div style={{marginBottom:40,animation:'slide-up 0.6s ease forwards'}}>
+            <img src="http://localhost:8000/logo1.webp" alt="JNTUA Labs" style={{width:200,height:200,borderRadius:20,objectFit:'cover',margin:'0 auto 40px',display:'block',boxShadow:'0 12px 48px rgba(59,130,246,0.3)'}}/>
+            <h1 style={{fontFamily:'var(--display)',fontSize:64,fontWeight:800,marginBottom:16,animation:'slide-up 0.7s ease 0.1s both'}}>
+              JNTUA LABS
+            </h1>
+            <p style={{fontSize:28,fontWeight:700,color:'#3b82f6',letterSpacing:'1px',animation:'slide-up 0.7s ease 0.2s both'}}>
+              LEARN BY DOING
+            </p>
+          </div>
+          <p style={{fontSize:18,color:'var(--text2)',lineHeight:1.7,maxWidth:600,margin:'0 auto 40px',animation:'slide-up 0.7s ease 0.3s both'}}>
+            A cloud-native AI-powered virtual lab platform where students code, compile, and learn — guided by intelligent mentorship, not shortcuts.
+          </p>
+          <div style={{display:'flex',gap:14,justifyContent:'center',flexWrap:'wrap',animation:'slide-up 0.7s ease 0.3s both'}}>
+            <button className="btn-primary" onClick={()=>onNavigate('register')} style={{fontSize:16,padding:'14px 36px'}}>
+              Start Learning Free
+            </button>
+            <button className="btn-ghost" onClick={()=>onNavigate('login')} style={{fontSize:15,padding:'14px 28px'}}>
+              Faculty Portal →
+            </button>
+          </div>
+          {/* Live Stats */}
+          <div style={{display:'flex',gap:40,justifyContent:'center',marginTop:64,flexWrap:'wrap',animation:'slide-up 0.7s ease 0.4s both'}}>
+            {[['12,400+','Questions Solved'],['98ms','Avg Execution Time'],['5 Languages','Supported'],['99.9%','Uptime SLA']].map(([v,l])=>(
+              <div key={l} style={{textAlign:'center'}}>
+                <div style={{fontSize:28,fontWeight:700,fontFamily:'var(--display)',color:'var(--accent2)'}}>{v}</div>
+                <div style={{fontSize:12,color:'var(--text3)',marginTop:4,fontWeight:500}}>{l}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* FEATURES */}
+      <section style={{padding:'120px 40px',maxWidth:1200,margin:'0 auto'}}>
+        <div style={{textAlign:'center',marginBottom:72}}>
+          <div className="badge badge-blue" style={{marginBottom:16}}>Features</div>
+          <h2 style={{fontFamily:'var(--display)',fontSize:48,fontWeight:800,letterSpacing:'-1px',marginBottom:16}}>Everything you need to learn</h2>
+          <p style={{fontSize:18,color:'var(--text2)',maxWidth:500,margin:'0 auto'}}>One platform built for students, faculty, and administrators.</p>
+        </div>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(340px,1fr))',gap:24}}>
+          {features.map((f,i)=>(
+            <div key={f.title} className="card" style={{padding:28,cursor:'default',animation:`slide-up 0.6s ease ${i*0.1}s both`}}>
+              <div style={{width:48,height:48,borderRadius:12,background:`${f.color}18`,display:'flex',alignItems:'center',justifyContent:'center',marginBottom:20}}>
+                <Icon name={f.icon} size={22} color={f.color}/>
+              </div>
+              <h3 style={{fontSize:18,fontWeight:700,fontFamily:'var(--display)',marginBottom:10}}>{f.title}</h3>
+              <p style={{fontSize:14,color:'var(--text2)',lineHeight:1.7}}>{f.desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section style={{padding:'100px 40px',textAlign:'center',position:'relative',overflow:'hidden'}}>
+        <div className="hero-orb" style={{width:400,height:400,background:'rgba(59,130,246,0.1)',top:'50%',left:'50%',transform:'translate(-50%,-50%)'}}/>
+        <div style={{position:'relative',zIndex:1}}>
+          <h2 style={{fontFamily:'var(--display)',fontSize:52,fontWeight:800,letterSpacing:'-1.5px',marginBottom:20}}>Ready to start coding?</h2>
+          <p style={{fontSize:18,color:'var(--text2)',marginBottom:40}}>Join thousands of students already using JNTUA Labs.</p>
+          <button className="btn-primary" onClick={()=>onNavigate('register')} style={{fontSize:17,padding:'16px 48px',animation:'glow-pulse 3s infinite'}}>
+            Create Free Account
+          </button>
+        </div>
+      </section>
+
+      {/* FOOTER */}
+      <footer style={{borderTop:'1px solid var(--border)',padding:'40px',textAlign:'center'}}>
+        <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:10,marginBottom:12}}>
+          <img src="C:\Users\Admin\Desktop\logo1.webp" alt="JNTUA Labs" style={{width:28,height:28,borderRadius:8,objectFit:'cover'}}/>
+          <span style={{fontFamily:'var(--display)',fontWeight:700}}>JNTUA Labs</span>
+        </div>
+        <p style={{color:'var(--text3)',fontSize:13}}>© 2026 JNTUA Labs. Cloud-Based AI Virtual Lab System. All rights reserved.</p>
+        <p style={{color:'var(--text3)',fontSize:12,marginTop:8}}>Developed by: M.Madhavi, P.Poojitha, K.Amrutha</p>
+      </footer>
+    </div>
+  );
+}
+
+// ─── LOGIN PAGE ────────────────────────────────────────────────────
+function LoginPage({onNavigate,onLogin}){
+  const [role,setRole]=useState('student');
+  const [email,setEmail]=useState('');
+  const [pass,setPass]=useState('');
+  const [showPass,setShowPass]=useState(false);
+  const [loading,setLoading]=useState(false);
+
+  const handleLogin=async()=>{
+    if(!email||!pass){alert('Please enter email and password');return;}
+    setLoading(true);
+    try{
+      const res=await fetch('http://localhost:5000/api/auth/login',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({email,password:pass,role})
+      });
+      const data=await res.json();
+      if(res.ok){
+        localStorage.setItem('token',data.token);
+        localStorage.setItem('role',role);
+        localStorage.setItem('userId',data.userId);
+        localStorage.setItem('firstName',data.firstName||'');
+        localStorage.setItem('lastName',data.lastName||'');
+        onLogin(role);
+      }else{
+        alert(data.message||'Login failed');
+      }
+    }catch(err){
+      alert('Error: '+err.message);
+    }finally{
+      setLoading(false);
+    }
+  };
+
+  return(
+    <div style={{minHeight:'100vh',display:'grid',gridTemplateColumns:'1fr 1fr',overflow:'hidden'}}>
+      {/* LEFT PANEL */}
+      <div style={{background:'var(--bg2)',position:'relative',overflow:'hidden',display:'flex',flexDirection:'column',justifyContent:'center',padding:'80px 60px'}}>
+        <div style={{position:'absolute',inset:0,backgroundImage:'radial-gradient(circle at 1px 1px,rgba(255,255,255,0.03) 1px,transparent 0)',backgroundSize:'32px 32px'}}/>
+        <div className="hero-orb" style={{width:300,height:300,background:'rgba(59,130,246,0.15)',bottom:0,right:0}}/>
+        <div style={{position:'relative',zIndex:1}}>
+          <div style={{cursor:'pointer',display:'inline-flex',alignItems:'center',gap:8,marginBottom:60}} onClick={()=>onNavigate('landing')}>
+            <img src="C:\Users\Admin\Desktop\logo1.webp" alt="JNTUA Labs" style={{width:36,height:36,borderRadius:10,objectFit:'cover'}}/>
+            <span style={{fontFamily:'var(--display)',fontSize:20,fontWeight:700}}>JNTUA Labs</span>
+          </div>
+          <h2 style={{fontFamily:'var(--display)',fontSize:40,fontWeight:800,lineHeight:1.1,marginBottom:20,letterSpacing:'-1px'}}>Code. Learn.<br/>Excel.</h2>
+          <p style={{color:'var(--text2)',fontSize:16,lineHeight:1.7,marginBottom:48}}>Your AI-powered virtual lab environment awaits. Five languages, one platform.</p>
+          <div style={{display:'flex',flexDirection:'column',gap:16}}>
+            {[['Real-time code execution','play'],['AI learning assistant','bot'],['Progress analytics','chart'],['Faculty managed labs','book']].map(([t,ic])=>(
+              <div key={t} style={{display:'flex',alignItems:'center',gap:12,color:'var(--text2)',fontSize:14}}>
+                <div style={{width:28,height:28,borderRadius:8,background:'rgba(59,130,246,0.12)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                  <Icon name={ic} size={14} color='#60a5fa'/>
+                </div>
+                {t}
+              </div>
+            ))}
+          </div>
+          <div style={{marginTop:48,padding:'20px',borderRadius:12,background:'rgba(59,130,246,0.06)',border:'1px solid rgba(59,130,246,0.15)'}}>
+            <div style={{display:'flex',gap:16,marginBottom:12}}>
+              <div style={{width:36,height:36,borderRadius:'50%',background:'rgba(16,185,129,0.2)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:13,fontWeight:700,color:'#34d399',flexShrink:0}}>AK</div>
+              <div>
+                <div style={{fontSize:13,fontWeight:600,marginBottom:4}}>Anjali Kumar</div>
+                <div style={{fontSize:12,color:'var(--text3)'}}>Top performer this week · Python Lab</div>
+              </div>
+            </div>
+            <div style={{fontSize:13,color:'var(--text2)',fontStyle:'italic'}}>"Solved 3 problems in under 40 minutes using only the AI hints — never felt smarter!"</div>
+          </div>
+        </div>
+      </div>
+
+      {/* RIGHT PANEL — FORM */}
+      <div style={{display:'flex',alignItems:'center',justifyContent:'center',padding:'60px 80px',background:'var(--bg)'}}>
+        <div style={{width:'100%',maxWidth:400}}>
+          <h1 style={{fontFamily:'var(--display)',fontSize:32,fontWeight:800,marginBottom:8,letterSpacing:'-0.5px'}}>Welcome back</h1>
+          <p style={{color:'var(--text2)',fontSize:14,marginBottom:36}}>Sign in to your account to continue</p>
+
+          {/* ROLE SELECTOR */}
+          <div style={{display:'flex',background:'var(--bg2)',borderRadius:12,padding:4,marginBottom:28,border:'1px solid var(--border)'}}>
+            {['student','faculty','admin'].map(r=>(
+              <button key={r} onClick={()=>setRole(r)} style={{flex:1,padding:'9px',borderRadius:9,border:'none',fontFamily:'var(--font)',fontSize:13,fontWeight:600,cursor:'pointer',transition:'all 0.2s',background:role===r?'var(--accent)':'transparent',color:role===r?'#fff':'var(--text2)',textTransform:'capitalize'}}>
+                {r}
+              </button>
+            ))}
+          </div>
+
+          <div style={{display:'flex',flexDirection:'column',gap:18,marginBottom:24}}>
+            <div>
+              <label>Email address</label>
+              <input type="email" placeholder={`${role}@university.edu`} value={email} onChange={e=>setEmail(e.target.value)}/>
+            </div>
+            <div>
+              <label>Password</label>
+              <div style={{position:'relative'}}>
+                <input type={showPass?'text':'password'} placeholder="Enter your password" value={pass} onChange={e=>setPass(e.target.value)} style={{paddingRight:44}}/>
+                <button onClick={()=>setShowPass(!showPass)} style={{position:'absolute',right:12,top:'50%',transform:'translateY(-50%)',background:'none',border:'none',cursor:'pointer',color:'var(--text3)',padding:4}}>
+                  <Icon name="eye" size={16}/>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:24}}>
+            <label style={{display:'flex',alignItems:'center',gap:8,cursor:'pointer',margin:0}}>
+              <input type="checkbox" style={{accentColor:'var(--accent)'}}/>
+              <span style={{fontSize:13,color:'var(--text2)'}}>Remember me</span>
+            </label>
+            <button style={{background:'none',border:'none',color:'var(--accent2)',fontSize:13,cursor:'pointer',fontFamily:'var(--font)'}}>Forgot password?</button>
+          </div>
+
+          <button className="btn-primary" onClick={handleLogin} style={{width:'100%',padding:'14px',fontSize:15,display:'flex',alignItems:'center',justifyContent:'center',gap:8}}>
+            {loading?<><div style={{width:16,height:16,border:'2px solid rgba(255,255,255,0.3)',borderTop:'2px solid #fff',borderRadius:'50%',animation:'rotate 0.8s linear infinite'}}/> Signing in...</>:'Sign In →'}
+          </button>
+
+          <p style={{textAlign:'center',marginTop:24,fontSize:14,color:'var(--text2)'}}>
+            Don't have an account?{' '}
+            <button onClick={()=>onNavigate('register')} style={{background:'none',border:'none',color:'var(--accent2)',cursor:'pointer',fontFamily:'var(--font)',fontWeight:600,fontSize:14}}>
+              Register
+            </button>
+          </p>
+
+          {/* DEMO LOGINS */}
+          <div style={{marginTop:32,padding:'16px',borderRadius:10,background:'var(--bg2)',border:'1px solid var(--border)'}}>
+            <p style={{fontSize:11,color:'var(--text3)',fontWeight:600,letterSpacing:'1px',textTransform:'uppercase',marginBottom:10}}>Demo Credentials</p>
+            {[{r:'student',e:'student@demo.edu'},{r:'faculty',e:'faculty@demo.edu'},{r:'admin',e:'admin@demo.edu'}].map(d=>(
+              <button key={d.r} onClick={()=>{setRole(d.r);setEmail(d.e);setPass('demo1234');}} style={{display:'block',width:'100%',textAlign:'left',background:'none',border:'none',color:'var(--text2)',fontSize:12,cursor:'pointer',padding:'4px 0',fontFamily:'var(--mono)',transition:'color 0.2s'}}>
+                <span style={{color:'var(--accent2)'}}>{d.r}</span> · {d.e}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── REGISTER PAGE ─────────────────────────────────────────────────
+function RegisterPage({onNavigate}){
+  const [step,setStep]=useState(1);
+  const [role,setRole]=useState('student');
+  const [firstName,setFirstName]=useState('');
+  const [lastName,setLastName]=useState('');
+  const [email,setEmail]=useState('');
+  const [password,setPassword]=useState('');
+  const [confirmPass,setConfirmPass]=useState('');
+  const [loading,setLoading]=useState(false);
+
+  const handleRegister=async()=>{
+    if(!firstName||!lastName||!email||!password||!confirmPass){
+      alert('Please fill all fields');
+      return;
+    }
+    if(password!==confirmPass){
+      alert('Passwords do not match');
+      return;
+    }
+    setLoading(true);
+    try{
+      const res=await fetch('http://localhost:5000/api/auth/register',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({firstName,lastName,email,password,role})
+      });
+      const data=await res.json();
+      if(res.ok){
+        alert('Registration successful! Please login.');
+        onNavigate('login');
+      }else{
+        alert(data.message||'Registration failed');
+      }
+    }catch(err){
+      alert('Error: '+err.message);
+    }finally{
+      setLoading(false);
+    }
+  };
+
+  return(
+    <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',padding:40,position:'relative',overflow:'hidden'}}>
+      <div className="hero-orb" style={{width:500,height:500,background:'rgba(59,130,246,0.08)',top:'10%',left:'5%'}}/>
+      <div className="hero-orb" style={{width:400,height:400,background:'rgba(139,92,246,0.08)',bottom:'10%',right:'5%'}}/>
+      <div style={{width:'100%',maxWidth:480,position:'relative',zIndex:1}}>
+        <div style={{textAlign:'center',marginBottom:36}}>
+          <div style={{cursor:'pointer',display:'inline-flex',alignItems:'center',gap:8,marginBottom:20}} onClick={()=>onNavigate('landing')}>
+            <img src="C:\\Users\\Admin\\Desktop\\logo1.webp" alt="JNTUA Labs" style={{width:32,height:32,borderRadius:9,objectFit:'cover'}}/>
+            <span style={{fontFamily:'var(--display)',fontSize:18,fontWeight:700}}>JNTUA Labs</span>
+          </div>
+          <h1 style={{fontFamily:'var(--display)',fontSize:30,fontWeight:800,letterSpacing:'-0.5px',marginBottom:6}}>Create your account</h1>
+          <p style={{color:'var(--text2)',fontSize:14}}>Join the future of coding education</p>
+        </div>
+        <div className="card" style={{padding:36}}>
+          <div style={{display:'flex',background:'var(--bg2)',borderRadius:10,padding:3,marginBottom:28,border:'1px solid var(--border)'}}>
+            {['student','faculty'].map(r=>(
+              <button key={r} onClick={()=>setRole(r)} style={{flex:1,padding:'9px',borderRadius:8,border:'none',fontFamily:'var(--font)',fontSize:13,fontWeight:600,cursor:'pointer',transition:'all 0.2s',background:role===r?'var(--accent)':'transparent',color:role===r?'#fff':'var(--text2)',textTransform:'capitalize'}}>
+                {r}
+              </button>
+            ))}
+          </div>
+          <div style={{display:'flex',flexDirection:'column',gap:16,marginBottom:24}}>
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
+              <div><label>First Name</label><input type="text" placeholder="Aarav" value={firstName} onChange={e=>setFirstName(e.target.value)}/></div>
+              <div><label>Last Name</label><input type="text" placeholder="Singh" value={lastName} onChange={e=>setLastName(e.target.value)}/></div>
+            </div>
+            <div><label>Email</label><input type="email" placeholder={`${role}@university.edu`} value={email} onChange={e=>setEmail(e.target.value)}/></div>
+            <div><label>Password</label><input type="password" placeholder="Min. 8 characters" value={password} onChange={e=>setPassword(e.target.value)}/></div>
+            <div><label>Confirm Password</label><input type="password" placeholder="Re-enter password" value={confirmPass} onChange={e=>setConfirmPass(e.target.value)}/></div>
+          </div>
+          <button className="btn-primary" onClick={handleRegister} style={{width:'100%',padding:'14px',fontSize:15,display:'flex',alignItems:'center',justifyContent:'center',gap:8}} disabled={loading}>
+            {loading?<><div style={{width:16,height:16,border:'2px solid rgba(255,255,255,0.3)',borderTop:'2px solid #fff',borderRadius:'50%',animation:'rotate 0.8s linear infinite'}}/>Creating...</>:'Create Account →'}
+          </button>
+          <p style={{textAlign:'center',marginTop:16,fontSize:13,color:'var(--text2)'}}>
+            Already have an account?{' '}
+            <button onClick={()=>onNavigate('login')} style={{background:'none',border:'none',color:'var(--accent2)',cursor:'pointer',fontFamily:'var(--font)',fontWeight:600,fontSize:13}}>Sign in</button>
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── STUDENT DASHBOARD ─────────────────────────────────────────────
+function StudentDashboard({onNavigate,onLogout}){
+  const [page,setPage]=useState('home');
+  const [collapsed,setCollapsed]=useState(false);
+
+  const navItems=[
+    {id:'home',label:'Dashboard',icon:'home'},
+    {id:'labs',label:'My Labs',icon:'flask'},
+    {id:'assignments',label:'Assignments',icon:'book'},
+    {id:'editor',label:'Code Editor',icon:'code'},
+    {id:'ai',label:'AI Assistant',icon:'bot'},
+    {id:'progress',label:'My Progress',icon:'chart'},
+    {id:'leaderboard',label:'Leaderboard',icon:'trophy'},
+    {id:'settings',label:'Settings',icon:'settings'},
+  ];
+
+  return(
+    <div style={{display:'flex',minHeight:'100vh',background:'var(--bg)'}}>
+      {/* SIDEBAR */}
+      <aside style={{width:collapsed?60:220,background:'var(--surface)',borderRight:'1px solid var(--border)',display:'flex',flexDirection:'column',transition:'width 0.3s',flexShrink:0,position:'sticky',top:0,height:'100vh',overflow:'hidden'}}>
+        <div style={{padding:'20px',display:'flex',alignItems:'center',gap:10,borderBottom:'1px solid var(--border)',marginBottom:8}}>
+          <img src="C:\Users\Admin\Desktop\logo1.webp" alt="JNTUA Labs" style={{width:32,height:32,borderRadius:9,objectFit:'cover',flexShrink:0}}/>
+          {!collapsed&&<span style={{fontFamily:'var(--display)',fontWeight:700,fontSize:17,whiteSpace:'nowrap'}}>JNTUA Labs</span>}
+        </div>
+        <div style={{flex:1,padding:'8px',overflowY:'auto'}}>
+          {navItems.map(n=>(
+            <div key={n.id} className={`sidebar-link${page===n.id?' active':''}`} onClick={()=>setPage(n.id)} style={{justifyContent:collapsed?'center':'flex-start',marginBottom:2}}>
+              <Icon name={n.icon} size={17}/>
+              {!collapsed&&<span>{n.label}</span>}
+            </div>
+          ))}
+        </div>
+        <div style={{padding:'8px',borderTop:'1px solid var(--border)'}}>
+          {!collapsed&&(
+            <div style={{padding:'12px',borderRadius:10,background:'var(--bg3)',marginBottom:8,display:'flex',alignItems:'center',gap:10}}>
+              <div style={{width:32,height:32,borderRadius:'50%',background:'linear-gradient(135deg,#3b82f6,#10b981)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:12,fontWeight:700,color:'#fff',flexShrink:0}}>{(localStorage.getItem('firstName')||'S')[0]}{(localStorage.getItem('lastName')||'U')[0]}</div>
+              <div style={{overflow:'hidden'}}>
+                <div style={{fontSize:13,fontWeight:600,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{(localStorage.getItem('firstName')||'Student')+' '+(localStorage.getItem('lastName')||'')}</div>
+                <div style={{fontSize:11,color:'var(--text3)'}}>CS · Sem 4</div>
+              </div>
+            </div>
+          )}
+          <div className="sidebar-link" onClick={onLogout} style={{color:'var(--red)',justifyContent:collapsed?'center':'flex-start'}}>
+            <Icon name="logout" size={17} color='var(--red)'/>
+            {!collapsed&&<span>Logout</span>}
+          </div>
+        </div>
+      </aside>
+
+      {/* MAIN */}
+      <div style={{flex:1,overflow:'auto'}}>
+        {/* TOPBAR */}
+        <header style={{position:'sticky',top:0,zIndex:20,background:'rgba(8,12,20,0.9)',backdropFilter:'blur(20px)',borderBottom:'1px solid var(--border)',padding:'0 28px',height:60,display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+          <div style={{display:'flex',alignItems:'center',gap:12}}>
+            <button onClick={()=>setCollapsed(!collapsed)} style={{background:'none',border:'none',cursor:'pointer',color:'var(--text2)',padding:4,borderRadius:6,transition:'background 0.2s'}} onMouseOver={e=>e.currentTarget.style.background='var(--bg3)'} onMouseOut={e=>e.currentTarget.style.background='none'}>
+              <Icon name="menu" size={18}/>
+            </button>
+            <span style={{fontSize:15,fontWeight:600,color:'var(--text2)'}}>{navItems.find(n=>n.id===page)?.label}</span>
+          </div>
+          <div style={{display:'flex',alignItems:'center',gap:10}}>
+            <div style={{position:'relative'}}>
+              <Icon name="search" size={15} color='var(--text3)' style={{position:'absolute',left:10,top:'50%',transform:'translateY(-50%)'}}/>
+              <input type="text" placeholder="Search problems..." style={{paddingLeft:34,width:220,height:34,fontSize:13}}/>
+            </div>
+            <button style={{background:'none',border:'none',cursor:'pointer',color:'var(--text2)',position:'relative'}}>
+              <Icon name="bell" size={18}/>
+              <div style={{width:7,height:7,borderRadius:'50%',background:'#ef4444',position:'absolute',top:0,right:0,border:'1.5px solid var(--bg)'}}/>
+            </button>
+          </div>
+        </header>
+
+        <div style={{padding:'28px'}}>
+          {page==='home'&&<StudentHome setPage={setPage}/>}
+          {page==='labs'&&<LabSelection setPage={setPage}/>}
+          {page==='editor'&&<CodeEditor/>}
+          {page==='ai'&&<AIAssistant/>}
+          {page==='assignments'&&<Assignments/>}
+          {page==='progress'&&<ProgressPage/>}
+          {page==='leaderboard'&&<LeaderboardPage/>}
+          {page==='settings'&&<SettingsPage/>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function StudentHome({setPage}){
+  const [userName,setUserName]=useState('Student');
+  
+  useEffect(()=>{
+    const firstName=localStorage.getItem('firstName')||'Student';
+    setUserName(firstName);
+  },[]);
+
+  const stats=[
+    {label:'Problems Solved',value:'47',delta:'+5 this week',up:true,color:'#3b82f6',icon:'check'},
+    {label:'Current Streak',value:'12',delta:'days',up:true,color:'#10b981',icon:'zap'},
+    {label:'Lab Sessions',value:'23',delta:'+2 today',up:true,color:'#8b5cf6',icon:'flask'},
+    {label:'Rank',value:'#8',delta:'↑3 positions',up:true,color:'#f59e0b',icon:'trophy'},
+  ];
+  const recentProblems=[
+    {title:'Fibonacci Sequence',lang:'Python',diff:'Easy',status:'solved',marks:10,time:'12 min'},
+    {title:'Binary Search Tree',lang:'Java',diff:'Medium',status:'solved',marks:20,time:'28 min'},
+    {title:'Merge Sort',lang:'C++',diff:'Medium',status:'attempted',marks:20,time:'—'},
+    {title:'Graph Traversal (BFS)',lang:'Python',diff:'Hard',status:'pending',marks:30,time:'—'},
+  ];
+  const diffColors={Easy:'green',Medium:'amber',Hard:'red'};
+  const statusColors={solved:'green',attempted:'amber',pending:'blue'};
+
+  return(
+    <div style={{animation:'slide-up 0.5s ease'}}>
+      <div style={{marginBottom:28}}>
+        <h1 style={{fontFamily:'var(--display)',fontSize:26,fontWeight:800,letterSpacing:'-0.5px',marginBottom:4}}>Good morning, {userName} 👋</h1>
+        <p style={{color:'var(--text2)',fontSize:14}}>You have 2 pending assignments due today. Keep your streak alive!</p>
+      </div>
+
+      {/* STREAK BANNER */}
+      <div style={{background:'linear-gradient(135deg,rgba(16,185,129,0.12),rgba(6,182,212,0.08))',border:'1px solid rgba(16,185,129,0.2)',borderRadius:14,padding:'18px 24px',marginBottom:24,display:'flex',alignItems:'center',gap:16}}>
+        <div style={{fontSize:32}}>🔥</div>
+        <div>
+          <div style={{fontSize:17,fontWeight:700,fontFamily:'var(--display)'}}>12-day coding streak!</div>
+          <div style={{fontSize:13,color:'var(--text2)',marginTop:2}}>Keep going — you're 3 days away from the "Dedicated Coder" badge</div>
+        </div>
+        <button className="btn-ghost" style={{marginLeft:'auto',whiteSpace:'nowrap'}} onClick={()=>setPage('labs')}>Start Today →</button>
+      </div>
+
+      {/* STAT CARDS */}
+      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(200px,1fr))',gap:16,marginBottom:28}}>
+        {stats.map(s=>(
+          <div key={s.label} className="stat-card">
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:12}}>
+              <span className="stat-label">{s.label}</span>
+              <div style={{width:32,height:32,borderRadius:8,background:`${s.color}18`,display:'flex',alignItems:'center',justifyContent:'center'}}>
+                <Icon name={s.icon} size={15} color={s.color}/>
+              </div>
+            </div>
+            <div className="stat-value" style={{color:s.color}}>{s.value}</div>
+            <div className={`stat-delta up`}>{s.delta}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* RECENT PROBLEMS & QUICK ACCESS */}
+      <div style={{display:'grid',gridTemplateColumns:'2fr 1fr',gap:20}}>
+        <div className="card" style={{overflow:'hidden'}}>
+          <div style={{padding:'18px 20px',borderBottom:'1px solid var(--border)',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+            <span style={{fontWeight:700,fontSize:15}}>Recent Problems</span>
+            <button className="btn-ghost" style={{padding:'5px 12px',fontSize:12}} onClick={()=>setPage('assignments')}>View all</button>
+          </div>
+          {recentProblems.map((p,i)=>(
+            <div key={p.title} style={{display:'grid',gridTemplateColumns:'2fr 80px 80px 80px',alignItems:'center',padding:'13px 20px',borderBottom:i<recentProblems.length-1?'1px solid var(--border)':'none',transition:'background 0.15s',cursor:'pointer'}} onMouseOver={e=>e.currentTarget.style.background='rgba(255,255,255,0.02)'} onMouseOut={e=>e.currentTarget.style.background='none'}>
+              <div>
+                <div style={{fontSize:14,fontWeight:500,marginBottom:3}}>{p.title}</div>
+                <div style={{fontSize:11,color:'var(--text3)'}}>{p.lang}</div>
+              </div>
+              <span className={`badge badge-${diffColors[p.diff]}`} style={{fontSize:10}}>{p.diff}</span>
+              <span className={`badge badge-${statusColors[p.status]}`} style={{fontSize:10,textTransform:'capitalize'}}>{p.status}</span>
+              <span style={{fontSize:12,color:'var(--text3)',textAlign:'right'}}>{p.time}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* QUICK ACCESS LABS */}
+        <div className="card" style={{padding:20}}>
+          <div style={{fontWeight:700,fontSize:15,marginBottom:16}}>Quick Access</div>
+          {LANGUAGES.map(l=>(
+            <button key={l.id} onClick={()=>setPage('editor')} style={{display:'flex',alignItems:'center',gap:10,width:'100%',background:'var(--bg3)',border:'1px solid var(--border)',borderRadius:10,padding:'10px 12px',marginBottom:8,cursor:'pointer',transition:'all 0.2s',color:'var(--text)',fontFamily:'var(--font)',fontSize:13}} onMouseOver={e=>e.currentTarget.style.borderColor=l.color} onMouseOut={e=>e.currentTarget.style.borderColor='var(--border)'}>
+              <span style={{fontSize:16}}>{l.icon}</span>
+              <span style={{fontWeight:500}}>{l.name}</span>
+              <span style={{marginLeft:'auto',fontSize:11,color:'var(--text3)'}}>{l.desc}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function LabSelection({setPage}){
+  const [selected,setSelected]=useState(null);
+  return(
+    <div style={{animation:'slide-up 0.5s ease'}}>
+      <div style={{marginBottom:28}}>
+        <h1 style={{fontFamily:'var(--display)',fontSize:24,fontWeight:800,letterSpacing:'-0.5px',marginBottom:4}}>Programming Labs</h1>
+        <p style={{color:'var(--text2)',fontSize:14}}>Select a language to enter its dedicated coding environment</p>
+      </div>
+      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(300px,1fr))',gap:20}}>
+        {LANGUAGES.map(l=>(
+          <div key={l.id} className="card" style={{padding:28,cursor:'pointer',border:selected===l.id?`1px solid ${l.color}`:'1px solid var(--border)',position:'relative',overflow:'hidden'}} onClick={()=>{setSelected(l.id);setTimeout(()=>setPage('editor'),300);}}>
+            <div style={{position:'absolute',top:-30,right:-30,width:120,height:120,borderRadius:'50%',background:l.bg,pointerEvents:'none'}}/>
+            <div style={{display:'flex',alignItems:'center',gap:14,marginBottom:16}}>
+              <div style={{fontSize:36}}>{l.icon}</div>
+              <div>
+                <div style={{fontFamily:'var(--display)',fontSize:20,fontWeight:800}}>{l.name} Lab</div>
+                <div style={{fontSize:12,color:'var(--text3)',marginTop:2}}>{l.desc}</div>
+              </div>
+              {selected===l.id&&<div style={{marginLeft:'auto'}}><Icon name="check" size={18} color={l.color}/></div>}
+            </div>
+            <div style={{display:'flex',gap:8,flexWrap:'wrap',marginBottom:16}}>
+              {['Assignments','Practice','Exams'].map(t=><span key={t} className="badge badge-blue" style={{fontSize:10}}>{t}</span>)}
+            </div>
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:10}}>
+              {[['Questions','24'],['Solved','17'],['Pending','7']].map(([k,v])=>(
+                <div key={k} style={{textAlign:'center',padding:'8px',background:'var(--bg2)',borderRadius:8}}>
+                  <div style={{fontSize:16,fontWeight:700,color:l.color}}>{v}</div>
+                  <div style={{fontSize:10,color:'var(--text3)',marginTop:2}}>{k}</div>
+                </div>
+              ))}
+            </div>
+            <button className="btn-primary" style={{width:'100%',marginTop:16,background:`linear-gradient(135deg,${l.tagColor},${l.tagColor}99)`}} onClick={()=>setPage('editor')}>
+              Open Lab →
+            </button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── CODE EDITOR ───────────────────────────────────────────────────
+function CodeEditor(){
+  const [lang,setLang]=useState('python');
+  const [code,setCode]=useState(CODE_SAMPLES.python);
+  const [output,setOutput]=useState('');
+  const [running,setRunning]=useState(false);
+  const [aiOpen,setAiOpen]=useState(true);
+  const [aiMessages,setAiMessages]=useState([
+    {role:'ai',text:"Hello! I'm your JNTUA Labs AI Assistant. I can explain concepts, give hints, and help you debug — but I won't write code for you. What are you working on?"},
+  ]);
+  const [aiInput,setAiInput]=useState('');
+  const [activeTab,setActiveTab]=useState(0);
+  const [showInput,setShowInput]=useState(false);
+  const [stdin,setStdin]=useState('');
+  const textareaRef=useRef();
+
+  const tabs=[
+    {name:'main.py',lang:'python'},
+    {name:'utils.py',lang:'python'},
+    {name:'test.py',lang:'python'},
+  ];
+
+  useEffect(()=>{setCode(CODE_SAMPLES[lang]||'# Write your code here\n');},[lang]);
+
+  const runCode=()=>{
+    setRunning(true);
+    setOutput('');
+    const lines=['Compiling...','Running program...'];
+    let i=0;
+    const interval=setInterval(()=>{
+      if(i<lines.length){setOutput(p=>p+lines[i]+'\n');i++;}
+      else{
+        clearInterval(interval);
+        setRunning(false);
+        const outs={
+          python:'Fibonacci sequence (10 terms):\n0 → 1 → 1 → 2 → 3 → 5 → 8 → 13 → 21 → 34\n\nProcess finished with exit code 0 ✓',
+          js:'Found 23 at index: 5\n\nNode.js v20.0 — exit code 0 ✓',
+          java:'Sorted array:\n11 12 22 25 34 64 90\n\nCompilation successful — exit code 0 ✓',
+          c:'10 → 20 → 30 → NULL\n\nGCC — exit code 0 ✓',
+          cpp:'Pushed: 10\nPushed: 20\nPushed: 30\nPopped: 30\n\nG++ — exit code 0 ✓',
+        };
+        setOutput(outs[lang]);
+      }
+    },500);
+  };
+
+  const submitCode=async()=>{
+    if(!code.trim()){alert('Please write some code');return;}
+    setRunning(true);
+    try{
+      const token=localStorage.getItem('token');
+      const userId=localStorage.getItem('userId');
+      const res=await fetch('http://localhost:5000/api/submissions/submit',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},
+        body:JSON.stringify({code,language:lang,questionId:'P001',userId})
+      });
+      const data=await res.json();
+      if(res.ok){
+        alert('Code submitted successfully!');
+        setCode('');
+      }else{
+        alert(data.message||'Submission failed');
+      }
+    }catch(err){
+      alert('Error: '+err.message);
+    }finally{
+      setRunning(false);
+    }
+  };
+
+  const sendAiMessage=()=>{
+    if(!aiInput.trim())return;
+    const q=aiInput.trim();
+    setAiMessages(p=>[...p,{role:'user',text:q}]);
+    setAiInput('');
+    const responses=[
+      "Great question! Think about the base cases first — what happens when n is 0 or 1? Start from there and build up your logic incrementally.",
+      "I can see you're working on recursion. Hint: every recursive function needs two things — a base case to stop recursion, and a recursive step that moves toward the base case.",
+      "That error usually means there's an off-by-one issue in your loop. Try printing the variable at each step to trace the execution.",
+      "The time complexity here is O(n). Think about whether you can reduce it using memoization — storing previously computed results.",
+      "You're on the right track! The key insight is that you need to handle the edge case before entering the main loop. What happens with empty input?",
+    ];
+    setTimeout(()=>{
+      setAiMessages(p=>[...p,{role:'ai',text:responses[Math.floor(Math.random()*responses.length)]}]);
+    },800);
+  };
+
+  const lineCount=code.split('\n').length;
+
+  return(
+    <div style={{animation:'slide-up 0.4s ease',height:'calc(100vh - 116px)',display:'flex',flexDirection:'column',gap:0}}>
+      {/* EDITOR TOPBAR */}
+      <div style={{background:'var(--bg2)',border:'1px solid var(--border)',borderBottom:'none',borderRadius:'14px 14px 0 0',display:'flex',alignItems:'center',justifyContent:'space-between',padding:'10px 16px'}}>
+        <div style={{display:'flex',alignItems:'center',gap:10}}>
+          <div style={{display:'flex',gap:6}}>
+            <div style={{width:12,height:12,borderRadius:'50%',background:'#ef4444'}}/>
+            <div style={{width:12,height:12,borderRadius:'50%',background:'#f59e0b'}}/>
+            <div style={{width:12,height:12,borderRadius:'50%',background:'#10b981'}}/>
+          </div>
+          <div style={{width:1,height:20,background:'var(--border)',margin:'0 6px'}}/>
+          <div style={{display:'flex',alignItems:'center',gap:8}}>
+            <Icon name="folder" size={14} color='var(--text3)'/>
+            <span style={{fontSize:12,color:'var(--text3)',fontFamily:'var(--mono)'}}>lab-session-4</span>
+            <span style={{color:'var(--text3)'}}>/</span>
+          </div>
+        </div>
+
+        {/* LANGUAGE SELECTOR */}
+        <div style={{display:'flex',gap:6}}>
+          {LANGUAGES.map(l=>(
+            <button key={l.id} onClick={()=>setLang(l.id)} style={{display:'flex',alignItems:'center',gap:5,padding:'5px 10px',borderRadius:7,border:'none',background:lang===l.id?l.bg:'transparent',color:lang===l.id?l.color:'var(--text3)',fontFamily:'var(--font)',fontSize:12,fontWeight:600,cursor:'pointer',transition:'all 0.2s'}}>
+              <span style={{fontSize:13}}>{l.icon}</span>{l.name}
+            </button>
+          ))}
+        </div>
+
+        <div style={{display:'flex',gap:8,alignItems:'center'}}>
+          <button className="btn-ghost" style={{padding:'6px 12px',fontSize:12,display:'flex',alignItems:'center',gap:5}} onClick={()=>setShowInput(!showInput)}>
+            <Icon name="terminal" size={13}/>stdin
+          </button>
+          <button onClick={runCode} className="btn-primary" style={{padding:'7px 18px',fontSize:13,display:'flex',alignItems:'center',gap:6}} disabled={running}>
+            {running?<><div style={{width:12,height:12,border:'2px solid rgba(255,255,255,0.3)',borderTop:'2px solid #fff',borderRadius:'50%',animation:'rotate 0.8s linear infinite'}}/>Running...</>:<><Icon name="play" size={13}/>Run Code</>}
+          </button>
+          <button className="btn-ghost" style={{padding:'6px 10px',fontSize:12}} onClick={submitCode}>
+            <Icon name="save" size={13}/>
+          </button>
+          <button className="btn-ghost" style={{padding:'6px 10px',fontSize:12}} onClick={()=>setAiOpen(!aiOpen)}>
+            <Icon name="bot" size={13}/>
+          </button>
+        </div>
+      </div>
+
+      {/* TABS */}
+      <div style={{background:'var(--bg2)',borderLeft:'1px solid var(--border)',borderRight:'1px solid var(--border)',display:'flex',alignItems:'center',overflowX:'auto'}}>
+        {tabs.map((t,i)=>(
+          <div key={t.name} className={`tab${activeTab===i?' active':''}`} onClick={()=>setActiveTab(i)}>
+            <Icon name="file" size={12} color={activeTab===i?'var(--accent2)':'var(--text3)'}/>
+            <span style={{fontFamily:'var(--mono)',fontSize:12}}>{t.name}</span>
+            <span className="close" style={{cursor:'pointer'}}>×</span>
+          </div>
+        ))}
+        <button style={{background:'none',border:'none',cursor:'pointer',color:'var(--text3)',padding:'0 12px',fontSize:18,lineHeight:'40px',transition:'color 0.2s'}} onMouseOver={e=>e.currentTarget.style.color='var(--text2)'} onMouseOut={e=>e.currentTarget.style.color='var(--text3)'}>+</button>
+      </div>
+
+      {/* MAIN EDITOR AREA */}
+      <div style={{flex:1,display:'flex',overflow:'hidden',border:'1px solid var(--border)',borderTop:'none',borderRadius:'0 0 14px 14px',background:'var(--bg)'}}>
+        {/* FILE TREE */}
+        <div style={{width:180,background:'var(--surface)',borderRight:'1px solid var(--border)',padding:'12px 0',fontSize:12,fontFamily:'var(--mono)',overflow:'auto',flexShrink:0}}>
+          <div style={{padding:'4px 12px',color:'var(--text3)',fontWeight:600,fontSize:11,letterSpacing:'0.5px',textTransform:'uppercase',marginBottom:8}}>Explorer</div>
+          {['lab-session-4','  📄 main.py','  📄 utils.py','  📄 test.py','  📁 __pycache__'].map((f,i)=>(
+            <div key={i} style={{padding:'4px 12px',cursor:'pointer',color:f.includes('main')?'var(--text)':'var(--text2)',background:f.includes('main')?'rgba(59,130,246,0.1)':'none',borderLeft:f.includes('main')?'2px solid var(--accent)':'none',transition:'background 0.15s'}}>
+              {f.trim().startsWith('📄')||f.trim().startsWith('📁')?f:
+              <span style={{color:'var(--text2)',fontWeight:600}}>{f}</span>}
+            </div>
+          ))}
+        </div>
+
+        {/* CODE AREA */}
+        <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden'}}>
+          {showInput&&(
+            <div style={{padding:'8px 16px',background:'var(--bg2)',borderBottom:'1px solid var(--border)',display:'flex',gap:10,alignItems:'center'}}>
+              <span style={{fontSize:12,color:'var(--text2)',fontFamily:'var(--mono)',flexShrink:0}}>stdin:</span>
+              <input type="text" value={stdin} onChange={e=>setStdin(e.target.value)} placeholder="Enter program input..." style={{flex:1,height:30,fontSize:12,fontFamily:'var(--mono)'}}/>
+            </div>
+          )}
+          <div style={{flex:1,overflow:'auto',position:'relative'}}>
+            <div style={{display:'flex',minHeight:'100%'}}>
+              {/* Line numbers */}
+              <div style={{width:48,background:'var(--bg)',padding:'16px 0',borderRight:'1px solid var(--border)',flexShrink:0,userSelect:'none'}}>
+                {Array.from({length:lineCount}).map((_,i)=>(
+                  <div key={i} style={{fontFamily:'var(--mono)',fontSize:12,color:'var(--text3)',textAlign:'right',paddingRight:12,lineHeight:'1.7',height:'22.1px',display:'flex',alignItems:'center',justifyContent:'flex-end'}}>
+                    {i+1}
+                  </div>
+                ))}
+              </div>
+              {/* Code textarea */}
+              <div style={{flex:1,position:'relative'}}>
+                <textarea
+                  ref={textareaRef}
+                  value={code}
+                  onChange={e=>setCode(e.target.value)}
+                  spellCheck={false}
+                  style={{position:'absolute',inset:0,background:'transparent',border:'none',outline:'none',padding:'16px',fontFamily:'var(--mono)',fontSize:13,lineHeight:'1.7',color:'var(--text)',resize:'none',width:'100%',height:'100%',tabSize:4}}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* OUTPUT */}
+          <div style={{height:160,background:'var(--bg2)',borderTop:'1px solid var(--border)',display:'flex',flexDirection:'column'}}>
+            <div style={{padding:'8px 14px',borderBottom:'1px solid var(--border)',display:'flex',alignItems:'center',gap:10}}>
+              <Icon name="terminal" size={13} color='var(--text3)'/>
+              <span style={{fontSize:12,fontWeight:600,color:'var(--text2)'}}>Terminal Output</span>
+              {output&&<span className="badge badge-green" style={{fontSize:10}}>Done</span>}
+            </div>
+            <div style={{flex:1,overflow:'auto',padding:'12px 16px',fontFamily:'var(--mono)',fontSize:12,lineHeight:1.7,color:output.includes('exit code 0')?'#4ade80':'var(--text2)',whiteSpace:'pre'}}>
+              {output||<span style={{color:'var(--text3)'}}>Click "Run Code" to execute your program...</span>}
+              {running&&<span style={{animation:'blink 1s infinite'}}>█</span>}
+            </div>
+          </div>
+        </div>
+
+        {/* AI ASSISTANT PANEL */}
+        {aiOpen&&(
+          <div style={{width:300,background:'var(--surface)',borderLeft:'1px solid var(--border)',display:'flex',flexDirection:'column',flexShrink:0}}>
+            <div style={{padding:'14px 16px',borderBottom:'1px solid var(--border)',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+              <div style={{display:'flex',alignItems:'center',gap:8}}>
+                <div style={{width:28,height:28,borderRadius:8,background:'linear-gradient(135deg,#8b5cf6,#3b82f6)',display:'flex',alignItems:'center',justifyContent:'center'}}>
+                  <Icon name="bot" size={14} color='#fff'/>
+                </div>
+                <div>
+                  <div style={{fontSize:13,fontWeight:700}}>AI Mentor</div>
+                  <div style={{fontSize:10,color:'#10b981'}}>● Online</div>
+                </div>
+              </div>
+              <button onClick={()=>setAiOpen(false)} style={{background:'none',border:'none',cursor:'pointer',color:'var(--text3)',padding:4}}>
+                <Icon name="x" size={14}/>
+              </button>
+            </div>
+            <div style={{padding:'8px 12px',background:'rgba(245,158,11,0.08)',borderBottom:'1px solid rgba(245,158,11,0.15)',display:'flex',gap:8,alignItems:'flex-start'}}>
+              <Icon name="lock" size={12} color='#fbbf24' style={{flexShrink:0,marginTop:2}}/>
+              <span style={{fontSize:11,color:'#fbbf24',lineHeight:1.5}}>Copy-paste disabled. Type code manually for better learning.</span>
+            </div>
+            <div style={{flex:1,overflow:'auto',padding:'14px',display:'flex',flexDirection:'column',gap:10}}>
+              {aiMessages.map((m,i)=>(
+                <div key={i} style={{display:'flex',gap:8,flexDirection:m.role==='user'?'row-reverse':'row'}}>
+                  {m.role==='ai'&&(
+                    <div style={{width:26,height:26,borderRadius:8,background:'linear-gradient(135deg,#8b5cf6,#3b82f6)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,marginTop:2}}>
+                      <Icon name="bot" size={12} color='#fff'/>
+                    </div>
+                  )}
+                  <div style={{maxWidth:'80%',padding:'10px 12px',borderRadius:10,background:m.role==='user'?'rgba(59,130,246,0.15)':'var(--bg2)',border:`1px solid ${m.role==='user'?'rgba(59,130,246,0.25)':'var(--border)'}`,fontSize:12,lineHeight:1.6,color:m.role==='user'?'var(--accent3)':'var(--text)'}}>
+                    {m.text}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div style={{padding:'12px',borderTop:'1px solid var(--border)'}}>
+              <div style={{display:'flex',gap:6}}>
+                <input type="text" placeholder="Ask for a hint..." value={aiInput} onChange={e=>setAiInput(e.target.value)} onKeyDown={e=>e.key==='Enter'&&sendAiMessage()} style={{flex:1,height:36,fontSize:12,paddingLeft:10,paddingRight:10}}/>
+                <button onClick={sendAiMessage} className="btn-primary" style={{padding:'0 12px',flexShrink:0}}>
+                  <Icon name="send" size={13}/>
+                </button>
+              </div>
+              <div style={{marginTop:8,display:'flex',gap:6,flexWrap:'wrap'}}>
+                {['Give a hint','Explain error','What is this?'].map(s=>(
+                  <button key={s} onClick={()=>{setAiInput(s);}} style={{fontSize:10,padding:'3px 8px',borderRadius:6,background:'var(--bg3)',border:'1px solid var(--border)',color:'var(--text2)',cursor:'pointer',fontFamily:'var(--font)'}}>
+                    {s}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function AIAssistant(){
+  const [messages,setMessages]=useState([
+    {role:'ai',text:"Hi! I'm your JNTUA Labs AI Mentor. I'm here to help you understand programming concepts, debug your thinking, and guide you toward solutions — without writing code for you. What would you like to learn today?"},
+  ]);
+  const [input,setInput]=useState('');
+  const [typing,setTyping]=useState(false);
+  const suggestions=['Explain recursion','What is Big-O notation?','How does binary search work?','Explain pointers in C','What is OOP?','Dynamic programming tips'];
+
+  const send=()=>{
+    if(!input.trim())return;
+    const q=input.trim();
+    setMessages(p=>[...p,{role:'user',text:q}]);
+    setInput('');setTyping(true);
+    const replies=[
+      "Great question! Recursion is a technique where a function calls itself. Think of it like Russian dolls — each doll contains a smaller version. The key is always having a 'base case' that stops the recursion. Try to identify the simplest version of your problem first, then think about how to reduce a complex case to a simpler one.",
+      "Big-O notation describes how an algorithm's performance scales with input size. O(1) is constant time — instant regardless of input. O(n) grows linearly. O(n²) becomes slow quickly. When analyzing your code, count the loops — nested loops often indicate O(n²).",
+      "Binary search is elegant! It works on sorted arrays by repeatedly halving the search space. Think of guessing a number between 1-100: always guess the middle. This gives O(log n) time complexity — much better than checking every element.",
+    ];
+    setTimeout(()=>{setTyping(false);setMessages(p=>[...p,{role:'ai',text:replies[Math.floor(Math.random()*replies.length)]}]);},1200);
+  };
+
+  return(
+    <div style={{animation:'slide-up 0.5s ease',height:'calc(100vh - 120px)',display:'flex',flexDirection:'column'}}>
+      <div style={{marginBottom:20}}>
+        <h1 style={{fontFamily:'var(--display)',fontSize:24,fontWeight:800,letterSpacing:'-0.5px',marginBottom:4}}>AI Learning Assistant</h1>
+        <p style={{color:'var(--text2)',fontSize:14}}>Ask anything about programming. Your mentor guides — you code.</p>
+      </div>
+      <div className="card" style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden'}}>
+        <div style={{flex:1,overflow:'auto',padding:24,display:'flex',flexDirection:'column',gap:16}}>
+          {messages.map((m,i)=>(
+            <div key={i} style={{display:'flex',gap:12,flexDirection:m.role==='user'?'row-reverse':'row',animation:'slide-up 0.3s ease'}}>
+              <div style={{width:32,height:32,borderRadius:10,background:m.role==='ai'?'linear-gradient(135deg,#8b5cf6,#3b82f6)':'linear-gradient(135deg,#3b82f6,#10b981)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,marginTop:2}}>
+                <Icon name={m.role==='ai'?'bot':'star'} size={14} color='#fff'/>
+              </div>
+              <div style={{maxWidth:'70%',padding:'14px 18px',borderRadius:14,background:m.role==='user'?'rgba(59,130,246,0.12)':'var(--bg2)',border:`1px solid ${m.role==='user'?'rgba(59,130,246,0.2)':'var(--border)'}`,fontSize:14,lineHeight:1.7}}>
+                {m.text}
+              </div>
+            </div>
+          ))}
+          {typing&&(
+            <div style={{display:'flex',gap:12}}>
+              <div style={{width:32,height:32,borderRadius:10,background:'linear-gradient(135deg,#8b5cf6,#3b82f6)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                <Icon name="bot" size={14} color='#fff'/>
+              </div>
+              <div style={{padding:'14px 18px',borderRadius:14,background:'var(--bg2)',border:'1px solid var(--border)'}}>
+                <div style={{display:'flex',gap:5,alignItems:'center'}}>
+                  {[0,1,2].map(i=><div key={i} style={{width:7,height:7,borderRadius:'50%',background:'var(--text3)',animation:`blink 1s ${i*0.2}s infinite`}}/>)}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+        <div style={{padding:'16px 20px',borderTop:'1px solid var(--border)'}}>
+          <div style={{display:'flex',gap:6,marginBottom:12,flexWrap:'wrap'}}>
+            {suggestions.map(s=>(
+              <button key={s} onClick={()=>setInput(s)} style={{fontSize:12,padding:'5px 10px',borderRadius:20,background:'rgba(59,130,246,0.08)',border:'1px solid rgba(59,130,246,0.2)',color:'#60a5fa',cursor:'pointer',fontFamily:'var(--font)',transition:'all 0.2s'}} onMouseOver={e=>e.currentTarget.style.background='rgba(59,130,246,0.15)'} onMouseOut={e=>e.currentTarget.style.background='rgba(59,130,246,0.08)'}>
+                {s}
+              </button>
+            ))}
+          </div>
+          <div style={{display:'flex',gap:10}}>
+            <input type="text" placeholder="Ask a concept, request a hint, or describe a problem..." value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>e.key==='Enter'&&send()} style={{flex:1,height:44,fontSize:14}}/>
+            <button onClick={send} className="btn-primary" style={{padding:'0 20px',flexShrink:0,display:'flex',alignItems:'center',gap:6}}>
+              <Icon name="send" size={15}/>Send
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Assignments(){
+  const [problems,setProblems]=useState([
+    {id:'P001',title:'Reverse a String',lang:'Python',diff:'Easy',marks:10,deadline:'Today, 5pm',status:'solved',desc:'Write a function that reverses a string without using built-in reverse methods.'},
+    {id:'P002',title:'Linked List Reversal',lang:'C',diff:'Medium',marks:20,deadline:'Tomorrow, 11pm',status:'pending',desc:'Implement an iterative function to reverse a singly linked list.'},
+    {id:'P003',title:'Binary Tree Height',lang:'Java',diff:'Medium',marks:25,deadline:'May 18',status:'attempted',desc:'Find the height of a binary tree using recursion.'},
+    {id:'P004',title:'Dijkstra\'s Algorithm',lang:'C++',diff:'Hard',marks:40,deadline:'May 20',status:'pending',desc:'Implement Dijkstra\'s shortest path algorithm for weighted graphs.'},
+    {id:'P005',title:'Quick Sort',lang:'Python',diff:'Medium',marks:20,deadline:'May 21',status:'pending',desc:'Implement quicksort with median-of-three pivot selection.'},
+  ]);
+  const [filter,setFilter]=useState('all');
+  const [loading,setLoading]=useState(true);
+
+  useEffect(()=>{
+    const fetchQuestions=async()=>{
+      try{
+        const token=localStorage.getItem('token');
+        const res=await fetch('http://localhost:5000/api/questions',{
+          method:'GET',
+          headers:{'Authorization':`Bearer ${token}`}
+        });
+        if(res.ok){
+          const data=await res.json();
+          const mapped=data.map((q,i)=>({
+            id:`P${String(i+1).padStart(3,'0')}`,
+            title:q.title,
+            lang:q.language,
+            diff:q.difficulty,
+            marks:q.marks,
+            deadline:'Today, 5pm',
+            status:['solved','attempted','pending'][Math.floor(Math.random()*3)],
+            desc:q.description
+          }));
+          setProblems(mapped);
+        }
+      }catch(err){
+        console.log('Using mock data');
+      }finally{
+        setLoading(false);
+      }
+    };
+    fetchQuestions();
+  },[]);
+
+  const filtered=filter==='all'?problems:problems.filter(p=>p.status===filter);
+  const diffColors={Easy:'green',Medium:'amber',Hard:'red'};
+  const statusColors={solved:'green',attempted:'amber',pending:'blue'};
+
+  return(
+    <div style={{animation:'slide-up 0.5s ease'}}>
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:24}}>
+        <div>
+          <h1 style={{fontFamily:'var(--display)',fontSize:24,fontWeight:800,letterSpacing:'-0.5px',marginBottom:4}}>Assignments</h1>
+          <p style={{color:'var(--text2)',fontSize:14}}>{problems.length} active problems · 2 deadlines today</p>
+        </div>
+        <div style={{display:'flex',gap:6}}>
+          {['all','pending','attempted','solved'].map(f=>(
+            <button key={f} onClick={()=>setFilter(f)} style={{padding:'7px 14px',borderRadius:8,border:`1px solid ${filter===f?'var(--accent)':'var(--border)'}`,background:filter===f?'rgba(59,130,246,0.1)':'transparent',color:filter===f?'var(--accent2)':'var(--text2)',fontFamily:'var(--font)',fontSize:12,fontWeight:600,cursor:'pointer',transition:'all 0.2s',textTransform:'capitalize'}}>
+              {f}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div style={{display:'flex',flexDirection:'column',gap:12}}>
+        {filtered.map(p=>(
+          <div key={p.id} className="card" style={{padding:'20px 24px',display:'grid',gridTemplateColumns:'1fr auto',gap:16,alignItems:'center'}}>
+            <div>
+              <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:8}}>
+                <span style={{fontFamily:'var(--mono)',fontSize:11,color:'var(--text3)'}}>{p.id}</span>
+                <h3 style={{fontSize:16,fontWeight:700}}>{p.title}</h3>
+                <span className={`badge badge-${diffColors[p.diff]}`}>{p.diff}</span>
+                <span className={`badge badge-${statusColors[p.status]}`} style={{textTransform:'capitalize'}}>{p.status}</span>
+              </div>
+              <p style={{fontSize:13,color:'var(--text2)',lineHeight:1.6,marginBottom:10}}>{p.desc}</p>
+              <div style={{display:'flex',gap:16,fontSize:12,color:'var(--text3)'}}>
+                <span>🏷️ {p.lang}</span>
+                <span>⏰ {p.deadline}</span>
+                <span>⭐ {p.marks} marks</span>
+              </div>
+            </div>
+            <div style={{display:'flex',gap:8}}>
+              {p.status==='solved'&&<span className="badge badge-green" style={{padding:'8px 14px'}}>✓ Solved</span>}
+              <button className="btn-primary" style={{padding:'9px 20px',fontSize:13}}>
+                {p.status==='solved'?'Review':'Start →'}
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ProgressPage(){
+  const [stats,setStats]=useState({problems:47,rate:81,streak:12,time:'24h 30m'});
+  const [skills,setSkills]=useState([
+    {name:'Python',level:78,color:'#10b981'},
+    {name:'JavaScript',level:64,color:'#fbbf24'},
+    {name:'Java',level:52,color:'#f97316'},
+    {name:'C++',level:45,color:'#8b5cf6'},
+    {name:'C',level:38,color:'#3b82f6'},
+  ]);
+  const weekData=[42,55,30,68,85,60,70];
+  const days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+
+  useEffect(()=>{
+    const fetchProgress=async()=>{
+      try{
+        const token=localStorage.getItem('token');
+        const userId=localStorage.getItem('userId');
+        const res=await fetch(`http://localhost:5000/api/progress/${userId}`,{
+          method:'GET',
+          headers:{'Authorization':`Bearer ${token}`}
+        });
+        if(res.ok){
+          const data=await res.json();
+          setStats({
+            problems:data.problemsSolved||47,
+            rate:Math.round((data.acceptanceRate||81)*100),
+            streak:data.streak||12,
+            time:data.totalTime||'24h 30m'
+          });
+        }
+      }catch(err){
+        console.log('Using mock progress data');
+      }
+    };
+    fetchProgress();
+  },[]);
+
+  return(
+    <div style={{animation:'slide-up 0.5s ease'}}>
+      <div style={{marginBottom:24}}>
+        <h1 style={{fontFamily:'var(--display)',fontSize:24,fontWeight:800,letterSpacing:'-0.5px',marginBottom:4}}>My Progress</h1>
+        <p style={{color:'var(--text2)',fontSize:14}}>Track your learning journey across all labs</p>
+      </div>
+      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:20,marginBottom:20}}>
+        <div className="card" style={{padding:24}}>
+          <div style={{fontWeight:700,fontSize:15,marginBottom:20}}>Language Proficiency</div>
+          {skills.map(s=>(
+            <div key={s.name} style={{marginBottom:16}}>
+              <div style={{display:'flex',justifyContent:'space-between',marginBottom:6}}>
+                <span style={{fontSize:13,fontWeight:500}}>{s.name}</span>
+                <span style={{fontSize:13,fontWeight:700,color:s.color}}>{s.level}%</span>
+              </div>
+              <div className="progress-bar">
+                <div className="progress-fill" style={{width:`${s.level}%`,background:s.color}}/>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="card" style={{padding:24}}>
+          <div style={{fontWeight:700,fontSize:15,marginBottom:20}}>Weekly Activity</div>
+          <div style={{display:'flex',gap:8,alignItems:'flex-end',height:140}}>
+            {weekData.map((v,i)=>(
+              <div key={i} style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',gap:6}}>
+                <div style={{width:'100%',background:'linear-gradient(to top,#3b82f6,#8b5cf6)',borderRadius:'4px 4px 0 0',height:`${v}%`,transition:'height 0.8s ease',minHeight:4}}/>
+                <span style={{fontSize:10,color:'var(--text3)',fontWeight:500}}>{days[i]}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+      <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:16}}>
+        {[['Total Problems',stats.problems+'','solved'],['Acceptance Rate',stats.rate+'%','rate'],['Best Streak',stats.streak+'','days'],['Total Time',stats.time,'coded']].map(([l,v,s])=>(
+          <div key={l} className="stat-card">
+            <span className="stat-label">{l}</span>
+            <div className="stat-value" style={{color:'var(--accent2)',fontSize:24}}>{v}</div>
+            <div style={{fontSize:12,color:'var(--text3)'}}>{s}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function LeaderboardPage(){
+  const leaders=[
+    {rank:1,name:'Priya Reddy',score:1240,solved:52,streak:18,lang:'Python',badge:'🥇'},
+    {rank:2,name:'Karthik M',score:1180,solved:49,streak:14,lang:'C++',badge:'🥈'},
+    {rank:3,name:'Anjali Singh',score:1050,solved:44,streak:21,lang:'Java',badge:'🥉'},
+    {rank:4,name:'Rahul Das',score:980,solved:41,streak:9,lang:'Python',badge:''},
+    {rank:5,name:'Divya Kumar',score:920,solved:38,streak:12,lang:'JavaScript',badge:''},
+    {rank:6,name:'Ajay Patel',score:880,solved:37,streak:7,lang:'C',badge:''},
+    {rank:7,name:'Sneha Nair',score:840,solved:35,streak:5,lang:'Python',badge:''},
+    {rank:8,name:'Arjun Sharma',score:810,solved:47,streak:12,lang:'Mixed',badge:'⭐',isMe:true},
+  ];
+  return(
+    <div style={{animation:'slide-up 0.5s ease'}}>
+      <div style={{marginBottom:24}}>
+        <h1 style={{fontFamily:'var(--display)',fontSize:24,fontWeight:800,letterSpacing:'-0.5px',marginBottom:4}}>Leaderboard</h1>
+        <p style={{color:'var(--text2)',fontSize:14}}>Computer Science — Batch 2022–2026</p>
+      </div>
+      <div className="card" style={{overflow:'hidden'}}>
+        <div style={{display:'grid',gridTemplateColumns:'60px 1fr 100px 100px 100px',padding:'12px 20px',borderBottom:'1px solid var(--border)',fontSize:11,fontWeight:600,letterSpacing:'1px',textTransform:'uppercase',color:'var(--text3)'}}>
+          <span>Rank</span><span>Student</span><span style={{textAlign:'center'}}>Score</span><span style={{textAlign:'center'}}>Solved</span><span style={{textAlign:'center'}}>Streak</span>
+        </div>
+        {leaders.map(l=>(
+          <div key={l.rank} style={{display:'grid',gridTemplateColumns:'60px 1fr 100px 100px 100px',padding:'14px 20px',borderBottom:'1px solid var(--border)',alignItems:'center',background:l.isMe?'rgba(59,130,246,0.06)':'none',borderLeft:l.isMe?'3px solid var(--accent)':'3px solid transparent',transition:'background 0.15s',cursor:'default'}} onMouseOver={e=>{if(!l.isMe)e.currentTarget.style.background='rgba(255,255,255,0.02)'}} onMouseOut={e=>{if(!l.isMe)e.currentTarget.style.background='none'}}>
+            <div style={{display:'flex',alignItems:'center',gap:6}}>
+              <span style={{fontSize:l.rank<=3?20:14,fontWeight:700,color:l.rank===1?'#fbbf24':l.rank===2?'#94a3b8':l.rank===3?'#f97316':'var(--text3)',fontFamily:'var(--display)',minWidth:24,textAlign:'center'}}>
+                {l.badge||l.rank}
+              </span>
+            </div>
+            <div style={{display:'flex',alignItems:'center',gap:12}}>
+              <div style={{width:32,height:32,borderRadius:'50%',background:`hsl(${l.rank*40},70%,30%)`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:11,fontWeight:700,color:'#fff',flexShrink:0}}>
+                {l.name.split(' ').map(w=>w[0]).join('')}
+              </div>
+              <div>
+                <div style={{fontSize:14,fontWeight:600}}>{l.name}{l.isMe&&<span style={{marginLeft:6,fontSize:11,color:'var(--accent2)'}}>(you)</span>}</div>
+                <div style={{fontSize:11,color:'var(--text3)'}}>Best in {l.lang}</div>
+              </div>
+            </div>
+            <div style={{textAlign:'center',fontWeight:700,fontFamily:'var(--display)',color:'var(--accent2)',fontSize:16}}>{l.score}</div>
+            <div style={{textAlign:'center',fontSize:14,fontWeight:600}}>{l.solved}</div>
+            <div style={{textAlign:'center',display:'flex',alignItems:'center',justifyContent:'center',gap:4,fontSize:13,fontWeight:600}}>{l.streak} 🔥</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function SettingsPage(){
+  const [theme,setTheme]=useState('dark');
+  const [notifications,setNotifications]=useState(true);
+  const [autosave,setAutosave]=useState(true);
+  const Toggle=({on,set})=>(
+    <div onClick={()=>set(!on)} style={{width:44,height:24,borderRadius:12,background:on?'var(--accent)':'var(--bg3)',cursor:'pointer',position:'relative',transition:'background 0.3s',border:'1px solid var(--border)'}}>
+      <div style={{width:18,height:18,borderRadius:'50%',background:'#fff',position:'absolute',top:2,left:on?22:2,transition:'left 0.3s',boxShadow:'0 1px 3px rgba(0,0,0,0.3)'}}/>
+    </div>
+  );
+  return(
+    <div style={{animation:'slide-up 0.5s ease',maxWidth:600}}>
+      <div style={{marginBottom:24}}>
+        <h1 style={{fontFamily:'var(--display)',fontSize:24,fontWeight:800,marginBottom:4}}>Settings</h1>
+        <p style={{color:'var(--text2)',fontSize:14}}>Customize your JNTUA Labs experience</p>
+      </div>
+      {[
+        {title:'Account',items:[
+          {label:'Full Name',type:'input',value:'Arjun Sharma'},
+          {label:'Email',type:'input',value:'arjun.cs22@university.edu'},
+          {label:'Student ID',type:'input',value:'CS2022047'},
+        ]},
+        {title:'Preferences',items:[
+          {label:'Editor Theme',type:'toggle',on:theme==='dark',set:v=>setTheme(v?'dark':'light'),desc:'Dark theme'},
+          {label:'Auto Save',type:'toggle',on:autosave,set:setAutosave,desc:'Save code every 30 seconds'},
+          {label:'Notifications',type:'toggle',on:notifications,set:setNotifications,desc:'Deadline & grade alerts'},
+        ]},
+      ].map(section=>(
+        <div key={section.title} className="card" style={{padding:24,marginBottom:16}}>
+          <div style={{fontWeight:700,fontSize:15,marginBottom:20,fontFamily:'var(--display)'}}>{section.title}</div>
+          {section.items.map(item=>(
+            <div key={item.label} style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:16,paddingBottom:16,borderBottom:'1px solid var(--border)'}}>
+              <div>
+                <div style={{fontSize:14,fontWeight:500}}>{item.label}</div>
+                {item.desc&&<div style={{fontSize:12,color:'var(--text3)',marginTop:2}}>{item.desc}</div>}
+              </div>
+              {item.type==='input'?<input type="text" defaultValue={item.value} style={{width:220,fontSize:13,height:34}}/>:<Toggle on={item.on} set={item.set}/>}
+            </div>
+          ))}
+          <button className="btn-primary" style={{padding:'9px 20px',fontSize:13}}>Save Changes</button>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ─── FACULTY DASHBOARD ─────────────────────────────────────────────
+function FacultyDashboard({onLogout}){
+  const [page,setPage]=useState('home');
+  const navItems=[
+    {id:'home',label:'Dashboard',icon:'home'},
+    {id:'questions',label:'Questions',icon:'book'},
+    {id:'students',label:'Students',icon:'users'},
+    {id:'sessions',label:'Lab Sessions',icon:'clock'},
+    {id:'analytics',label:'Analytics',icon:'chart'},
+    {id:'settings',label:'Settings',icon:'settings'},
+  ];
+  return(
+    <div style={{display:'flex',minHeight:'100vh',background:'var(--bg)'}}>
+      <aside style={{width:220,background:'var(--surface)',borderRight:'1px solid var(--border)',display:'flex',flexDirection:'column',position:'sticky',top:0,height:'100vh'}}>
+        <div style={{padding:'20px',display:'flex',alignItems:'center',gap:10,borderBottom:'1px solid var(--border)',marginBottom:8}}>
+          <img src="C:\Users\Admin\Desktop\logo1.webp" alt="JNTUA Labs" style={{width:32,height:32,borderRadius:9,objectFit:'cover',flexShrink:0}}/>
+          <span style={{fontFamily:'var(--display)',fontWeight:700,fontSize:17}}>JNTUA Labs</span>
+        </div>
+        <div style={{padding:'8px 12px',marginBottom:8}}>
+          <div className="badge badge-purple" style={{fontSize:10}}>Faculty Portal</div>
+        </div>
+        <div style={{flex:1,padding:'8px',overflowY:'auto'}}>
+          {navItems.map(n=>(
+            <div key={n.id} className={`sidebar-link${page===n.id?' active':''}`} onClick={()=>setPage(n.id)} style={{marginBottom:2}}>
+              <Icon name={n.icon} size={17}/><span>{n.label}</span>
+            </div>
+          ))}
+        </div>
+        <div style={{padding:'12px',borderTop:'1px solid var(--border)'}}>
+          <div style={{padding:'12px',borderRadius:10,background:'var(--bg3)',marginBottom:8,display:'flex',alignItems:'center',gap:10}}>
+            <div style={{width:32,height:32,borderRadius:'50%',background:'linear-gradient(135deg,#10b981,#0ea5e9)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:12,fontWeight:700,color:'#fff',flexShrink:0}}>RV</div>
+            <div><div style={{fontSize:13,fontWeight:600}}>Dr. Rahul Verma</div><div style={{fontSize:11,color:'var(--text3)'}}>CS Dept · Faculty</div></div>
+          </div>
+          <div className="sidebar-link" onClick={onLogout} style={{color:'var(--red)'}}>
+            <Icon name="logout" size={17} color='var(--red)'/><span>Logout</span>
+          </div>
+        </div>
+      </aside>
+      <div style={{flex:1,overflow:'auto'}}>
+        <header style={{position:'sticky',top:0,zIndex:20,background:'rgba(8,12,20,0.9)',backdropFilter:'blur(20px)',borderBottom:'1px solid var(--border)',padding:'0 28px',height:60,display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+          <span style={{fontSize:15,fontWeight:600,color:'var(--text2)'}}>{navItems.find(n=>n.id===page)?.label}</span>
+          <div style={{display:'flex',gap:10}}>
+            <button style={{background:'none',border:'none',cursor:'pointer',color:'var(--text2)'}}><Icon name="bell" size={18}/></button>
+          </div>
+        </header>
+        <div style={{padding:'28px'}}>
+          {page==='home'&&<FacultyHome setPage={setPage}/>}
+          {page==='questions'&&<QuestionManager/>}
+          {page==='students'&&<StudentTracker/>}
+          {page==='sessions'&&<SessionManager/>}
+          {page==='analytics'&&<AnalyticsPage/>}
+          {page==='settings'&&<SettingsPage/>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function FacultyHome({setPage}){
+  const stats=[
+    {label:'Total Students',value:'124',color:'#3b82f6',icon:'users'},
+    {label:'Active Sessions',value:'3',color:'#10b981',icon:'activity'},
+    {label:'Questions Added',value:'48',color:'#8b5cf6',icon:'book'},
+    {label:'Avg Score',value:'72%',color:'#f59e0b',icon:'chart'},
+  ];
+  const recent=[
+    {name:'Priya Reddy',action:'Submitted Binary Search',time:'2 min ago',status:'Correct'},
+    {name:'Karthik M',action:'Started Merge Sort',time:'5 min ago',status:'In Progress'},
+    {name:'Anjali Singh',action:'Asked AI: recursion help',time:'8 min ago',status:'Active'},
+    {name:'Rahul Das',action:'Compilation error × 3',time:'12 min ago',status:'Struggling'},
+  ];
+  return(
+    <div style={{animation:'slide-up 0.5s ease'}}>
+      <div style={{marginBottom:28}}>
+        <h1 style={{fontFamily:'var(--display)',fontSize:26,fontWeight:800,marginBottom:4}}>Faculty Dashboard</h1>
+        <p style={{color:'var(--text2)',fontSize:14}}>Section B · Monday Lab · 10:00am – 12:00pm · Active Now</p>
+      </div>
+      <div style={{background:'linear-gradient(135deg,rgba(16,185,129,0.12),rgba(59,130,246,0.08))',border:'1px solid rgba(16,185,129,0.2)',borderRadius:14,padding:'18px 24px',marginBottom:24,display:'flex',alignItems:'center',gap:16}}>
+        <div style={{width:10,height:10,borderRadius:'50%',background:'#10b981',boxShadow:'0 0 10px #10b981',animation:'blink 1s infinite',flexShrink:0}}/>
+        <div>
+          <div style={{fontWeight:700,fontSize:16}}>Lab Session Active — Python Programming</div>
+          <div style={{fontSize:13,color:'var(--text2)',marginTop:2}}>86/124 students online · Ends in 1h 23m</div>
+        </div>
+        <button className="btn-ghost" style={{marginLeft:'auto',whiteSpace:'nowrap'}} onClick={()=>setPage('sessions')}>Manage Session →</button>
+      </div>
+      <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:16,marginBottom:24}}>
+        {stats.map(s=>(
+          <div key={s.label} className="stat-card">
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:10}}>
+              <span className="stat-label">{s.label}</span>
+              <div style={{width:30,height:30,borderRadius:8,background:`${s.color}18`,display:'flex',alignItems:'center',justifyContent:'center'}}>
+                <Icon name={s.icon} size={14} color={s.color}/>
+              </div>
+            </div>
+            <div className="stat-value" style={{color:s.color,fontSize:24}}>{s.value}</div>
+          </div>
+        ))}
+      </div>
+      <div className="card" style={{overflow:'hidden'}}>
+        <div style={{padding:'16px 20px',borderBottom:'1px solid var(--border)',fontWeight:700,fontSize:15}}>Live Student Activity</div>
+        {recent.map(r=>(
+          <div key={r.name} style={{display:'flex',alignItems:'center',padding:'12px 20px',borderBottom:'1px solid var(--border)',gap:14}}>
+            <div style={{width:32,height:32,borderRadius:'50%',background:'rgba(59,130,246,0.2)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:11,fontWeight:700,color:'#60a5fa',flexShrink:0}}>
+              {r.name.split(' ').map(w=>w[0]).join('')}
+            </div>
+            <div style={{flex:1}}>
+              <div style={{fontSize:13,fontWeight:600}}>{r.name}</div>
+              <div style={{fontSize:12,color:'var(--text2)',marginTop:1}}>{r.action}</div>
+            </div>
+            <span className={`badge badge-${r.status==='Correct'?'green':r.status==='Struggling'?'red':r.status==='Active'?'purple':'amber'}`} style={{fontSize:10}}>{r.status}</span>
+            <span style={{fontSize:11,color:'var(--text3)',whiteSpace:'nowrap'}}>{r.time}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function QuestionManager(){
+  const [showForm,setShowForm]=useState(false);
+  const [questions,setQuestions]=useState([
+    {id:'Q001',title:'Fibonacci Sequence',lang:'Python',diff:'Easy',marks:10,assigned:true,assignDate:'2026-05-20',assignTime:'10:00',deadline:'2026-05-25',deadlineTime:'18:00'},
+    {id:'Q002',title:'Binary Search',lang:'C++',diff:'Medium',marks:20,assigned:true,assignDate:'2026-05-20',assignTime:'10:00',deadline:'2026-05-27',deadlineTime:'18:00'},
+    {id:'Q003',title:'Heap Sort',lang:'Java',diff:'Hard',marks:35,assigned:false,assignDate:'2026-05-21',assignTime:'09:00',deadline:'2026-05-28',deadlineTime:'18:00'},
+    {id:'Q004',title:'Balanced Parentheses',lang:'Python',diff:'Medium',marks:15,assigned:true,assignDate:'2026-05-20',assignTime:'10:00',deadline:'2026-05-25',deadlineTime:'18:00'},
+  ]);
+  const [title,setTitle]=useState('');
+  const [language,setLanguage]=useState('Python');
+  const [difficulty,setDifficulty]=useState('Easy');
+  const [marks,setMarks]=useState('');
+  const [statement,setStatement]=useState('');
+  const [sampleInput,setSampleInput]=useState('');
+  const [sampleOutput,setSampleOutput]=useState('');
+  const [assignDate,setAssignDate]=useState('');
+  const [assignTime,setAssignTime]=useState('');
+  const [deadline,setDeadline]=useState('');
+  const [deadlineTime,setDeadlineTime]=useState('');
+  const [loading,setLoading]=useState(false);
+  const diffColors={Easy:'green',Medium:'amber',Hard:'red'};
+
+  const handleSaveQuestion=async()=>{
+    if(!title||!marks||!statement){alert('Please fill all required fields');return;}
+    setLoading(true);
+    try{
+      const token=localStorage.getItem('token');
+      const res=await fetch('http://localhost:5000/api/questions/add',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},
+        body:JSON.stringify({title,description:statement,language,difficulty,marks:parseInt(marks),sampleInput,sampleOutput})
+      });
+      const data=await res.json();
+      if(res.ok){
+        alert('Question added successfully!');
+        setQuestions([...questions,{id:`Q${questions.length+1}`,title,lang:language,diff:difficulty,marks:parseInt(marks),assigned:true,assignDate,assignTime,deadline,deadlineTime}]);
+        setTitle('');setStatement('');setSampleInput('');setSampleOutput('');setMarks('');
+        setShowForm(false);
+      }else{
+        alert(data.message||'Failed to add question');
+      }
+    }catch(err){
+      alert('Error: '+err.message);
+    }finally{
+      setLoading(false);
+    }
+  };
+
+  return(
+    <div style={{animation:'slide-up 0.5s ease'}}>
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:24}}>
+        <div>
+          <h1 style={{fontFamily:'var(--display)',fontSize:24,fontWeight:800,marginBottom:4}}>Question Bank</h1>
+          <p style={{color:'var(--text2)',fontSize:14}}>Manage and assign problems to students</p>
+        </div>
+        <button className="btn-primary" style={{display:'flex',alignItems:'center',gap:6}} onClick={()=>setShowForm(!showForm)}>
+          <Icon name="plus" size={15}/>Add Question
+        </button>
+      </div>
+      {showForm&&(
+        <div className="card" style={{padding:28,marginBottom:20}}>
+          <div style={{fontWeight:700,fontSize:16,marginBottom:20,fontFamily:'var(--display)'}}>New Question</div>
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16}}>
+            <div><label>Question Title</label><input type="text" placeholder="e.g. Reverse a Linked List" value={title} onChange={e=>setTitle(e.target.value)}/></div>
+            <div><label>Language</label>
+              <select value={language} onChange={e=>setLanguage(e.target.value)} style={{background:'var(--bg3)',border:'1px solid var(--border)',borderRadius:10,color:'var(--text)',fontFamily:'var(--font)',fontSize:14,padding:'12px 16px',width:'100%',outline:'none'}}>
+                {LANGUAGES.map(l=><option key={l.id}>{l.name}</option>)}
+              </select>
+            </div>
+            <div><label>Difficulty</label>
+              <select value={difficulty} onChange={e=>setDifficulty(e.target.value)} style={{background:'var(--bg3)',border:'1px solid var(--border)',borderRadius:10,color:'var(--text)',fontFamily:'var(--font)',fontSize:14,padding:'12px 16px',width:'100%',outline:'none'}}>
+                <option>Easy</option><option>Medium</option><option>Hard</option>
+              </select>
+            </div>
+            <div><label>Marks</label><input type="text" placeholder="e.g. 20" value={marks} onChange={e=>setMarks(e.target.value)}/></div>
+            <div><label>Assign Date</label><input type="date" value={assignDate} onChange={e=>setAssignDate(e.target.value)} style={{background:'var(--bg3)',border:'1px solid var(--border)',borderRadius:10,color:'var(--text)',fontFamily:'var(--font)',fontSize:14,padding:'12px 16px',width:'100%',outline:'none'}}/></div>
+            <div><label>Assign Time</label><input type="time" value={assignTime} onChange={e=>setAssignTime(e.target.value)} style={{background:'var(--bg3)',border:'1px solid var(--border)',borderRadius:10,color:'var(--text)',fontFamily:'var(--font)',fontSize:14,padding:'12px 16px',width:'100%',outline:'none'}}/></div>
+            <div><label>Deadline Date</label><input type="date" value={deadline} onChange={e=>setDeadline(e.target.value)} style={{background:'var(--bg3)',border:'1px solid var(--border)',borderRadius:10,color:'var(--text)',fontFamily:'var(--font)',fontSize:14,padding:'12px 16px',width:'100%',outline:'none'}}/></div>
+            <div><label>Deadline Time</label><input type="time" value={deadlineTime} onChange={e=>setDeadlineTime(e.target.value)} style={{background:'var(--bg3)',border:'1px solid var(--border)',borderRadius:10,color:'var(--text)',fontFamily:'var(--font)',fontSize:14,padding:'12px 16px',width:'100%',outline:'none'}}/></div>
+          </div>
+          <div style={{marginTop:16}}><label>Problem Statement</label>
+            <textarea placeholder="Describe the problem clearly with constraints..." value={statement} onChange={e=>setStatement(e.target.value)} style={{background:'var(--bg3)',border:'1px solid var(--border)',borderRadius:10,color:'var(--text)',fontFamily:'var(--font)',fontSize:14,padding:'12px 16px',width:'100%',height:120,resize:'vertical',outline:'none'}}/>
+          </div>
+          <div style={{marginTop:16}}>
+            <label>Sample Input / Output</label>
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
+              <textarea placeholder="Sample Input:\n5\n1 2 3 4 5" value={sampleInput} onChange={e=>setSampleInput(e.target.value)} style={{background:'var(--bg3)',border:'1px solid var(--border)',borderRadius:10,color:'var(--text)',fontFamily:'var(--mono)',fontSize:13,padding:'12px',height:80,resize:'none',outline:'none'}}/>
+              <textarea placeholder="Expected Output:\n5 4 3 2 1" value={sampleOutput} onChange={e=>setSampleOutput(e.target.value)} style={{background:'var(--bg3)',border:'1px solid var(--border)',borderRadius:10,color:'var(--text)',fontFamily:'var(--mono)',fontSize:13,padding:'12px',height:80,resize:'none',outline:'none'}}/>
+            </div>
+          </div>
+          <div style={{display:'flex',gap:10,marginTop:20}}>
+            <button className="btn-primary" style={{padding:'10px 24px'}} onClick={handleSaveQuestion} disabled={loading}>
+              {loading?'Saving...':'Save Question'}
+            </button>
+            <button className="btn-ghost" onClick={()=>setShowForm(false)}>Cancel</button>
+          </div>
+        </div>
+      )}
+      <div style={{display:'flex',flexDirection:'column',gap:10}}>
+        {questions.map(q=>(
+          <div key={q.id} className="card" style={{padding:'16px 20px',display:'flex',flexDirection:'column',gap:10}}>
+            <div style={{display:'flex',alignItems:'center',gap:16}}>
+              <span style={{fontFamily:'var(--mono)',fontSize:11,color:'var(--text3)',minWidth:40}}>{q.id}</span>
+              <div style={{flex:1}}>
+                <div style={{fontWeight:600,fontSize:15,marginBottom:4}}>{q.title}</div>
+                <div style={{display:'flex',gap:8}}>
+                  <span className={`badge badge-${diffColors[q.diff]}`}>{q.diff}</span>
+                  <span className="badge badge-blue">{q.lang}</span>
+                  <span style={{fontSize:11,color:'var(--text3)'}}>⭐ {q.marks} marks</span>
+                </div>
+              </div>
+              <span className={`badge badge-${q.assigned?'green':'amber'}`}>{q.assigned?'Assigned':'Draft'}</span>
+              <div style={{display:'flex',gap:6}}>
+                <button className="btn-ghost" style={{padding:'6px 10px'}}><Icon name="edit" size={13}/></button>
+                <button className="btn-ghost" style={{padding:'6px 10px',color:'var(--red)',borderColor:'rgba(239,68,68,0.2)'}}><Icon name="trash" size={13} color='var(--red)'/></button>
+              </div>
+            </div>
+            <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:12,paddingTop:10,borderTop:'1px solid var(--border)'}}>
+              <div style={{fontSize:12}}>
+                <span style={{color:'var(--text3)',fontWeight:600}}>Assign Date:</span>
+                <div style={{color:'var(--text)',marginTop:2}}>{q.assignDate} {q.assignTime}</div>
+              </div>
+              <div style={{fontSize:12}}>
+                <span style={{color:'var(--text3)',fontWeight:600}}>Deadline:</span>
+                <div style={{color:'var(--text)',marginTop:2}}>{q.deadline} {q.deadlineTime}</div>
+              </div>
+              <div style={{fontSize:12}}>
+                <span style={{color:'var(--text3)',fontWeight:600}}>Duration:</span>
+                <div style={{color:'var(--text)',marginTop:2}}>See question details</div>
+              </div>
+              <div style={{fontSize:12}}>
+                <span style={{color:'var(--text3)',fontWeight:600}}>Status:</span>
+                <div style={{color:'var(--text)',marginTop:2}}>Active</div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function StudentTracker(){
+  const students=[
+    {name:'Priya Reddy',id:'CS22047',score:94,solved:52,status:'Online',lang:'Python',time:'2h 15m'},
+    {name:'Karthik M',id:'CS22023',score:87,solved:49,status:'Online',lang:'C++',time:'1h 50m'},
+    {name:'Anjali Singh',id:'CS22031',score:82,solved:44,status:'Online',lang:'Java',time:'3h 02m'},
+    {name:'Rahul Das',id:'CS22015',score:76,solved:41,status:'Idle',lang:'Python',time:'0h 45m'},
+    {name:'Divya Kumar',id:'CS22058',score:71,solved:38,status:'Offline',lang:'JS',time:'—'},
+  ];
+  return(
+    <div style={{animation:'slide-up 0.5s ease'}}>
+      <div style={{marginBottom:24}}>
+        <h1 style={{fontFamily:'var(--display)',fontSize:24,fontWeight:800,marginBottom:4}}>Student Tracker</h1>
+        <p style={{color:'var(--text2)',fontSize:14}}>Real-time progress and activity monitoring</p>
+      </div>
+      <div className="card" style={{overflow:'hidden'}}>
+        <div style={{display:'grid',gridTemplateColumns:'2fr 80px 80px 80px 100px 80px',padding:'12px 20px',borderBottom:'1px solid var(--border)',fontSize:11,fontWeight:600,letterSpacing:'1px',textTransform:'uppercase',color:'var(--text3)'}}>
+          <span>Student</span><span style={{textAlign:'center'}}>Score</span><span style={{textAlign:'center'}}>Solved</span><span style={{textAlign:'center'}}>Status</span><span style={{textAlign:'center'}}>Language</span><span style={{textAlign:'center'}}>Time</span>
+        </div>
+        {students.map(s=>(
+          <div key={s.name} style={{display:'grid',gridTemplateColumns:'2fr 80px 80px 80px 100px 80px',padding:'14px 20px',borderBottom:'1px solid var(--border)',alignItems:'center',transition:'background 0.15s',cursor:'pointer'}} onMouseOver={e=>e.currentTarget.style.background='rgba(255,255,255,0.02)'} onMouseOut={e=>e.currentTarget.style.background='none'}>
+            <div style={{display:'flex',alignItems:'center',gap:12}}>
+              <div style={{width:32,height:32,borderRadius:'50%',background:`hsl(${s.name.charCodeAt(0)*7},60%,30%)`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:11,fontWeight:700,color:'#fff',flexShrink:0}}>
+                {s.name.split(' ').map(w=>w[0]).join('')}
+              </div>
+              <div><div style={{fontSize:14,fontWeight:600}}>{s.name}</div><div style={{fontSize:11,color:'var(--text3)'}}>{s.id}</div></div>
+            </div>
+            <div style={{textAlign:'center',fontWeight:700,color:'var(--accent2)'}}>{s.score}%</div>
+            <div style={{textAlign:'center',fontSize:13,fontWeight:600}}>{s.solved}</div>
+            <div style={{textAlign:'center'}}>
+              <span className={`badge badge-${s.status==='Online'?'green':s.status==='Idle'?'amber':'red'}`} style={{fontSize:10}}>{s.status}</span>
+            </div>
+            <div style={{textAlign:'center'}}><span className="badge badge-blue" style={{fontSize:10}}>{s.lang}</span></div>
+            <div style={{textAlign:'center',fontSize:12,color:'var(--text3)'}}>{s.time}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function SessionManager(){
+  const sessions=[
+    {title:'Python Lab — Sec B',date:'Today',time:'10:00 AM – 12:00 PM',students:86,status:'active',topic:'Recursion & DFS'},
+    {title:'C++ Lab — Sec A',date:'Today',time:'2:00 PM – 4:00 PM',students:0,status:'upcoming',topic:'Templates & STL'},
+    {title:'Java Lab — Sec C',date:'Tomorrow',time:'9:00 AM – 11:00 AM',students:0,status:'scheduled',topic:'OOP & Inheritance'},
+    {title:'Exam — Algo Midterm',date:'May 20',time:'10:00 AM – 1:00 PM',students:0,status:'scheduled',topic:'Sorting, Trees, Graphs'},
+  ];
+  const statusColors={active:'green',upcoming:'amber',scheduled:'blue'};
+  return(
+    <div style={{animation:'slide-up 0.5s ease'}}>
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:24}}>
+        <div><h1 style={{fontFamily:'var(--display)',fontSize:24,fontWeight:800,marginBottom:4}}>Lab Sessions</h1>
+          <p style={{color:'var(--text2)',fontSize:14}}>Schedule and control access to lab environments</p>
+        </div>
+        <button className="btn-primary" style={{display:'flex',alignItems:'center',gap:6}}>
+          <Icon name="plus" size={15}/>New Session
+        </button>
+      </div>
+      <div style={{display:'flex',flexDirection:'column',gap:14}}>
+        {sessions.map(s=>(
+          <div key={s.title} className="card" style={{padding:'20px 24px',display:'flex',alignItems:'center',gap:20}}>
+            <div style={{width:48,height:48,borderRadius:12,background:s.status==='active'?'rgba(16,185,129,0.15)':s.status==='upcoming'?'rgba(245,158,11,0.15)':'rgba(59,130,246,0.15)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+              <Icon name="clock" size={20} color={s.status==='active'?'#10b981':s.status==='upcoming'?'#f59e0b':'#3b82f6'}/>
+            </div>
+            <div style={{flex:1}}>
+              <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:6}}>
+                <span style={{fontWeight:700,fontSize:16}}>{s.title}</span>
+                <span className={`badge badge-${statusColors[s.status]}`} style={{textTransform:'capitalize'}}>{s.status}</span>
+              </div>
+              <div style={{display:'flex',gap:16,fontSize:12,color:'var(--text2)'}}>
+                <span>📅 {s.date}</span><span>⏰ {s.time}</span><span>📚 {s.topic}</span>
+                {s.students>0&&<span>👥 {s.students} students online</span>}
+              </div>
+            </div>
+            <div style={{display:'flex',gap:8}}>
+              {s.status==='active'&&<button className="btn-ghost" style={{color:'var(--red)',borderColor:'rgba(239,68,68,0.2)',fontSize:12}}>End Session</button>}
+              <button className="btn-ghost" style={{fontSize:12}}><Icon name="edit" size={13}/></button>
+              <button className="btn-primary" style={{fontSize:12,padding:'7px 14px'}}>
+                {s.status==='active'?'Monitor →':'Configure →'}
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function AnalyticsPage(){
+  const bars=[65,82,57,90,74,88,63,95];
+  const weeks=['W1','W2','W3','W4','W5','W6','W7','W8'];
+  return(
+    <div style={{animation:'slide-up 0.5s ease'}}>
+      <div style={{marginBottom:24}}>
+        <h1 style={{fontFamily:'var(--display)',fontSize:24,fontWeight:800,marginBottom:4}}>Analytics</h1>
+        <p style={{color:'var(--text2)',fontSize:14}}>Class performance insights and trends</p>
+      </div>
+      <div style={{display:'grid',gridTemplateColumns:'2fr 1fr',gap:20,marginBottom:20}}>
+        <div className="card" style={{padding:24}}>
+          <div style={{fontWeight:700,fontSize:15,marginBottom:20}}>Weekly Submission Rate</div>
+          <div style={{display:'flex',gap:10,alignItems:'flex-end',height:160}}>
+            {bars.map((v,i)=>(
+              <div key={i} style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',gap:8}}>
+                <span style={{fontSize:10,color:'var(--text3)',fontWeight:500}}>{v}%</span>
+                <div style={{width:'100%',background:'linear-gradient(to top,#3b82f6,#8b5cf6)',borderRadius:'4px 4px 0 0',height:`${v}%`,transition:'height 0.8s ease',minHeight:4}}/>
+                <span style={{fontSize:10,color:'var(--text3)',fontWeight:500}}>{weeks[i]}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="card" style={{padding:24}}>
+          <div style={{fontWeight:700,fontSize:15,marginBottom:16}}>Problem Difficulty Split</div>
+          {[['Easy','40%','#10b981'],['Medium','38%','#f59e0b'],['Hard','22%','#ef4444']].map(([k,v,c])=>(
+            <div key={k} style={{marginBottom:16}}>
+              <div style={{display:'flex',justifyContent:'space-between',marginBottom:6}}>
+                <span style={{fontSize:13,display:'flex',alignItems:'center',gap:6}}>
+                  <div style={{width:10,height:10,borderRadius:3,background:c,flexShrink:0}}/>{k}
+                </span>
+                <span style={{fontSize:13,fontWeight:700,color:c}}>{v}</span>
+              </div>
+              <div className="progress-bar">
+                <div className="progress-fill" style={{width:v,background:c}}/>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:16}}>
+        {[['Avg Score','72.4%','#3b82f6'],['Completion Rate','81%','#10b981'],['Avg Time','23 min','#8b5cf6'],['Total Attempts','1,240','#f59e0b']].map(([l,v,c])=>(
+          <div key={l} className="stat-card">
+            <span className="stat-label">{l}</span>
+            <div className="stat-value" style={{color:c,fontSize:24}}>{v}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── ADMIN DASHBOARD ───────────────────────────────────────────────
+function AdminDashboard({onLogout}){
+  const [page,setPage]=useState('home');
+  const navItems=[
+    {id:'home',label:'Overview',icon:'grid'},
+    {id:'users',label:'Users',icon:'users'},
+    {id:'labs',label:'Labs',icon:'flask'},
+    {id:'system',label:'System',icon:'cpu'},
+    {id:'settings',label:'Settings',icon:'settings'},
+  ];
+  return(
+    <div style={{display:'flex',minHeight:'100vh',background:'var(--bg)'}}>
+      <aside style={{width:220,background:'var(--surface)',borderRight:'1px solid var(--border)',display:'flex',flexDirection:'column',position:'sticky',top:0,height:'100vh'}}>
+        <div style={{padding:'20px',display:'flex',alignItems:'center',gap:10,borderBottom:'1px solid var(--border)',marginBottom:8}}>
+          <img src="C:\Users\Admin\Desktop\logo1.webp" alt="JNTUA Labs" style={{width:32,height:32,borderRadius:9,objectFit:'cover',flexShrink:0}}/>
+          <span style={{fontFamily:'var(--display)',fontWeight:700,fontSize:17}}>JNTUA Labs</span>
+        </div>
+        <div style={{padding:'8px 12px',marginBottom:8}}>
+          <div className="badge badge-red" style={{fontSize:10}}>Admin Control</div>
+        </div>
+        <div style={{flex:1,padding:'8px',overflowY:'auto'}}>
+          {navItems.map(n=>(
+            <div key={n.id} className={`sidebar-link${page===n.id?' active':''}`} onClick={()=>setPage(n.id)} style={{marginBottom:2}}>
+              <Icon name={n.icon} size={17}/><span>{n.label}</span>
+            </div>
+          ))}
+        </div>
+        <div style={{padding:'12px',borderTop:'1px solid var(--border)'}}>
+          <div style={{padding:'12px',borderRadius:10,background:'var(--bg3)',marginBottom:8,display:'flex',alignItems:'center',gap:10}}>
+            <div style={{width:32,height:32,borderRadius:'50%',background:'linear-gradient(135deg,#ef4444,#f59e0b)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:12,fontWeight:700,color:'#fff',flexShrink:0}}>SA</div>
+            <div><div style={{fontSize:13,fontWeight:600}}>Super Admin</div><div style={{fontSize:11,color:'var(--text3)'}}>System · Admin</div></div>
+          </div>
+          <div className="sidebar-link" onClick={onLogout} style={{color:'var(--red)'}}>
+            <Icon name="logout" size={17} color='var(--red)'/><span>Logout</span>
+          </div>
+        </div>
+      </aside>
+      <div style={{flex:1,overflow:'auto'}}>
+        <header style={{position:'sticky',top:0,zIndex:20,background:'rgba(8,12,20,0.9)',backdropFilter:'blur(20px)',borderBottom:'1px solid var(--border)',padding:'0 28px',height:60,display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+          <span style={{fontSize:15,fontWeight:600,color:'var(--text2)'}}>{navItems.find(n=>n.id===page)?.label}</span>
+          <button style={{background:'none',border:'none',cursor:'pointer',color:'var(--text2)'}}><Icon name="bell" size={18}/></button>
+        </header>
+        <div style={{padding:'28px'}}>
+          {page==='home'&&<AdminHome/>}
+          {page==='users'&&<UserManager/>}
+          {page==='labs'&&<LabManager/>}
+          {page==='system'&&<SystemMonitor/>}
+          {page==='settings'&&<SettingsPage/>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AdminHome(){
+  const stats=[
+    {label:'Total Users',value:'1,286',delta:'+34 this week',color:'#3b82f6',icon:'users'},
+    {label:'Active Labs',value:'8',delta:'3 live now',color:'#10b981',icon:'flask'},
+    {label:'Code Executions',value:'48,292',delta:'today',color:'#8b5cf6',icon:'zap'},
+    {label:'Uptime',value:'99.9%',delta:'30-day avg',color:'#f59e0b',icon:'shield'},
+  ];
+  return(
+    <div style={{animation:'slide-up 0.5s ease'}}>
+      <div style={{marginBottom:28}}>
+        <h1 style={{fontFamily:'var(--display)',fontSize:26,fontWeight:800,marginBottom:4}}>System Overview</h1>
+        <p style={{color:'var(--text2)',fontSize:14}}>Platform health, usage, and administrative controls</p>
+      </div>
+      <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:16,marginBottom:24}}>
+        {stats.map(s=>(
+          <div key={s.label} className="stat-card">
+            <div style={{display:'flex',justifyContent:'space-between',marginBottom:10}}>
+              <span className="stat-label">{s.label}</span>
+              <div style={{width:30,height:30,borderRadius:8,background:`${s.color}18`,display:'flex',alignItems:'center',justifyContent:'center'}}>
+                <Icon name={s.icon} size={14} color={s.color}/>
+              </div>
+            </div>
+            <div className="stat-value" style={{color:s.color,fontSize:24}}>{s.value}</div>
+            <div className="stat-delta up">{s.delta}</div>
+          </div>
+        ))}
+      </div>
+      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:20}}>
+        <div className="card" style={{padding:24}}>
+          <div style={{fontWeight:700,fontSize:15,marginBottom:16}}>User Distribution</div>
+          {[['Students','1,124','#3b82f6',87],['Faculty','142','#10b981',11],['Admin','20','#ef4444',2]].map(([k,v,c,pct])=>(
+            <div key={k} style={{marginBottom:14}}>
+              <div style={{display:'flex',justifyContent:'space-between',marginBottom:5}}>
+                <span style={{fontSize:13,display:'flex',alignItems:'center',gap:6}}><div style={{width:10,height:10,borderRadius:3,background:c}}/>{k}</span>
+                <span style={{fontSize:13,fontWeight:700}}>{v} <span style={{color:'var(--text3)',fontWeight:400,fontSize:11}}>({pct}%)</span></span>
+              </div>
+              <div className="progress-bar"><div className="progress-fill" style={{width:`${pct}%`,background:c}}/></div>
+            </div>
+          ))}
+        </div>
+        <div className="card" style={{padding:24}}>
+          <div style={{fontWeight:700,fontSize:15,marginBottom:16}}>System Health</div>
+          {[['CPU Usage','34%','#10b981'],['Memory','58%','#f59e0b'],['Docker Containers','72%','#3b82f6'],['Disk','41%','#8b5cf6']].map(([k,v,c])=>(
+            <div key={k} style={{marginBottom:14}}>
+              <div style={{display:'flex',justifyContent:'space-between',marginBottom:5}}>
+                <span style={{fontSize:13}}>{k}</span><span style={{fontSize:13,fontWeight:700,color:c}}>{v}</span>
+              </div>
+              <div className="progress-bar"><div className="progress-fill" style={{width:v,background:c}}/></div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function UserManager(){
+  const users=[
+    {name:'Arjun Sharma',email:'arjun.cs22@uni.edu',role:'Student',dept:'CS',status:'Active',joined:'Jan 2022'},
+    {name:'Dr. Rahul Verma',email:'rahul.v@uni.edu',role:'Faculty',dept:'CS',status:'Active',joined:'Aug 2019'},
+    {name:'Priya Reddy',email:'priya.cs22@uni.edu',role:'Student',dept:'CS',status:'Active',joined:'Jan 2022'},
+    {name:'Prof. Ananya K',email:'ananya.k@uni.edu',role:'Faculty',dept:'IT',status:'Active',joined:'Jul 2020'},
+    {name:'Karthik M',email:'karthik.ec22@uni.edu',role:'Student',dept:'ECE',status:'Inactive',joined:'Jan 2022'},
+  ];
+  return(
+    <div style={{animation:'slide-up 0.5s ease'}}>
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:24}}>
+        <div><h1 style={{fontFamily:'var(--display)',fontSize:24,fontWeight:800,marginBottom:4}}>User Management</h1>
+          <p style={{color:'var(--text2)',fontSize:14}}>1,286 total users across all roles</p>
+        </div>
+        <button className="btn-primary" style={{display:'flex',alignItems:'center',gap:6}}><Icon name="plus" size={15}/>Add User</button>
+      </div>
+      <div className="card" style={{overflow:'hidden'}}>
+        <div style={{display:'grid',gridTemplateColumns:'2fr 2fr 100px 80px 100px 80px',padding:'12px 20px',borderBottom:'1px solid var(--border)',fontSize:11,fontWeight:600,letterSpacing:'1px',textTransform:'uppercase',color:'var(--text3)'}}>
+          <span>Name</span><span>Email</span><span>Role</span><span>Dept</span><span>Status</span><span>Actions</span>
+        </div>
+        {users.map(u=>(
+          <div key={u.name} style={{display:'grid',gridTemplateColumns:'2fr 2fr 100px 80px 100px 80px',padding:'13px 20px',borderBottom:'1px solid var(--border)',alignItems:'center',transition:'background 0.15s'}} onMouseOver={e=>e.currentTarget.style.background='rgba(255,255,255,0.02)'} onMouseOut={e=>e.currentTarget.style.background='none'}>
+            <div style={{display:'flex',alignItems:'center',gap:10}}>
+              <div style={{width:28,height:28,borderRadius:'50%',background:`hsl(${u.name.charCodeAt(0)*13},60%,30%)`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:10,fontWeight:700,color:'#fff',flexShrink:0}}>{u.name.split(' ').map(w=>w[0]).join('')}</div>
+              <span style={{fontSize:13,fontWeight:500}}>{u.name}</span>
+            </div>
+            <span style={{fontSize:12,color:'var(--text2)',fontFamily:'var(--mono)'}}>{u.email}</span>
+            <span className={`badge badge-${u.role==='Faculty'?'purple':u.role==='Admin'?'red':'blue'}`} style={{fontSize:10}}>{u.role}</span>
+            <span style={{fontSize:12,color:'var(--text2)'}}>{u.dept}</span>
+            <span className={`badge badge-${u.status==='Active'?'green':'amber'}`} style={{fontSize:10}}>{u.status}</span>
+            <div style={{display:'flex',gap:4}}>
+              <button style={{background:'none',border:'none',cursor:'pointer',color:'var(--text3)',padding:4,borderRadius:4,transition:'color 0.2s'}} onMouseOver={e=>e.currentTarget.style.color='var(--accent2)'} onMouseOut={e=>e.currentTarget.style.color='var(--text3)'}><Icon name="edit" size={13}/></button>
+              <button style={{background:'none',border:'none',cursor:'pointer',color:'var(--text3)',padding:4,borderRadius:4,transition:'color 0.2s'}} onMouseOver={e=>e.currentTarget.style.color='var(--red)'} onMouseOut={e=>e.currentTarget.style.color='var(--text3)'}><Icon name="trash" size={13}/></button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function LabManager(){
+  const labs=[
+    {name:'Python Programming Lab',students:124,sessions:18,status:'Active',exec:'Judge0',questions:24},
+    {name:'C++ Programming Lab',students:98,sessions:14,status:'Active',exec:'Docker',questions:19},
+    {name:'Java Programming Lab',students:112,sessions:16,status:'Active',exec:'Judge0',questions:22},
+    {name:'C Programming Lab',students:87,sessions:12,status:'Maintenance',exec:'Docker',questions:18},
+    {name:'JavaScript Lab',students:76,sessions:10,status:'Active',exec:'Node.js',questions:20},
+  ];
+  return(
+    <div style={{animation:'slide-up 0.5s ease'}}>
+      <div style={{marginBottom:24}}>
+        <h1 style={{fontFamily:'var(--display)',fontSize:24,fontWeight:800,marginBottom:4}}>Lab Management</h1>
+        <p style={{color:'var(--text2)',fontSize:14}}>Configure and monitor all programming labs</p>
+      </div>
+      <div style={{display:'flex',flexDirection:'column',gap:12}}>
+        {labs.map(l=>(
+          <div key={l.name} className="card" style={{padding:'18px 22px',display:'flex',alignItems:'center',gap:16}}>
+            <div style={{flex:1}}>
+              <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:6}}>
+                <span style={{fontWeight:700,fontSize:15}}>{l.name}</span>
+                <span className={`badge badge-${l.status==='Active'?'green':'amber'}`}>{l.status}</span>
+              </div>
+              <div style={{display:'flex',gap:20,fontSize:12,color:'var(--text2)'}}>
+                <span>👥 {l.students} students</span>
+                <span>📅 {l.sessions} sessions</span>
+                <span>📝 {l.questions} questions</span>
+                <span>⚙️ {l.exec}</span>
+              </div>
+            </div>
+            <div style={{display:'flex',gap:8}}>
+              <button className="btn-ghost" style={{fontSize:12}}><Icon name="settings" size={13}/> Configure</button>
+              <button className="btn-ghost" style={{fontSize:12,color:l.status==='Active'?'var(--red)':'var(--green)',borderColor:l.status==='Active'?'rgba(239,68,68,0.2)':'rgba(16,185,129,0.2)'}}>
+                {l.status==='Active'?'Disable':'Enable'}
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function SystemMonitor(){
+  const logs=[
+    {time:'10:42:01',level:'INFO',msg:'Docker container started for student CS22047'},
+    {time:'10:41:58',level:'INFO',msg:'Code execution completed in 142ms — Python'},
+    {time:'10:41:45',level:'WARN',msg:'High memory usage detected on executor-03 (87%)'},
+    {time:'10:40:12',level:'INFO',msg:'Lab session started — Python Sec B (124 students)'},
+    {time:'10:38:55',level:'ERROR',msg:'Judge0 API timeout — retrying execution (attempt 2/3)'},
+    {time:'10:37:30',level:'INFO',msg:'AI API call successful — latency 340ms'},
+    {time:'10:35:00',level:'INFO',msg:'Scheduled maintenance completed — all systems nominal'},
+  ];
+  const levelColors={INFO:'blue',WARN:'amber',ERROR:'red'};
+  return(
+    <div style={{animation:'slide-up 0.5s ease'}}>
+      <div style={{marginBottom:24}}>
+        <h1 style={{fontFamily:'var(--display)',fontSize:24,fontWeight:800,marginBottom:4}}>System Monitor</h1>
+        <p style={{color:'var(--text2)',fontSize:14}}>Real-time platform health and execution logs</p>
+      </div>
+      <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:16,marginBottom:20}}>
+        {[['Executor Pool','8/10 healthy','#10b981'],['API Gateway','Nominal — 12ms','#10b981'],['Database','Connected — 2ms','#10b981']].map(([k,v,c])=>(
+          <div key={k} className="card" style={{padding:18,display:'flex',alignItems:'center',gap:12}}>
+            <div style={{width:10,height:10,borderRadius:'50%',background:c,boxShadow:`0 0 8px ${c}`,flexShrink:0}}/>
+            <div><div style={{fontSize:13,fontWeight:600}}>{k}</div><div style={{fontSize:11,color:'var(--text3)',marginTop:2}}>{v}</div></div>
+          </div>
+        ))}
+      </div>
+      <div className="card" style={{overflow:'hidden'}}>
+        <div style={{padding:'14px 20px',borderBottom:'1px solid var(--border)',display:'flex',alignItems:'center',gap:8}}>
+          <Icon name="terminal" size={14} color='var(--text3)'/>
+          <span style={{fontWeight:700,fontSize:14}}>System Logs</span>
+          <span className="badge badge-green" style={{marginLeft:'auto',fontSize:10}}>Live</span>
+        </div>
+        <div style={{padding:16,fontFamily:'var(--mono)',fontSize:12,maxHeight:300,overflow:'auto'}}>
+          {logs.map((l,i)=>(
+            <div key={i} style={{display:'flex',gap:12,padding:'5px 0',borderBottom:'1px solid rgba(255,255,255,0.03)',alignItems:'flex-start'}}>
+              <span style={{color:'var(--text3)',flexShrink:0}}>{l.time}</span>
+              <span className={`badge badge-${levelColors[l.level]}`} style={{fontSize:9,flexShrink:0}}>{l.level}</span>
+              <span style={{color:'var(--text2)',lineHeight:1.5}}>{l.msg}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── APP ROOT ──────────────────────────────────────────────────────
+function App(){
+  const [view,setView]=useState('landing');
+  const [role,setRole]=useState(null);
+  const [theme,setTheme]=useState('dark');
+
+  const toggleTheme=()=>{
+    const newTheme=theme==='dark'?'light':'dark';
+    setTheme(newTheme);
+    if(newTheme==='light'){
+      document.documentElement.classList.add('light-theme');
+    }else{
+      document.documentElement.classList.remove('light-theme');
+    }
+    localStorage.setItem('theme',newTheme);
+  };
+
+  useEffect(()=>{
+    const savedTheme=localStorage.getItem('theme')||'dark';
+    setTheme(savedTheme);
+    if(savedTheme==='light'){
+      document.documentElement.classList.add('light-theme');
+    }
+  },[]);
+
+  const handleLogin=(r)=>{setRole(r);setView('dashboard');};
+  const handleLogout=()=>{setRole(null);setView('landing');};
+
+  if(view==='landing')return<LandingPage onNavigate={setView} onToggleTheme={toggleTheme} theme={theme}/>;
+  if(view==='login')return<LoginPage onNavigate={setView} onLogin={handleLogin} onToggleTheme={toggleTheme} theme={theme}/>;
+  if(view==='register')return<RegisterPage onNavigate={setView} onToggleTheme={toggleTheme} theme={theme}/>;
+  if(view==='dashboard'){
+    if(role==='faculty')return<FacultyDashboard onLogout={handleLogout} onToggleTheme={toggleTheme} theme={theme}/>;
+    if(role==='admin')return<AdminDashboard onLogout={handleLogout} onToggleTheme={toggleTheme} theme={theme}/>;
+    return<StudentDashboard onNavigate={setView} onLogout={handleLogout} onToggleTheme={toggleTheme} theme={theme}/>;
+  }
+  return<LandingPage onNavigate={setView} onToggleTheme={toggleTheme} theme={theme}/>;
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
