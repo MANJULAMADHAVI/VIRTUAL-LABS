@@ -160,7 +160,7 @@ label{font-size:13px;color:var(--text2);font-weight:500;display:block;margin-bot
 <body>
 <div id="root"></div>
 <script>
-document.addEventListener('DOMContentLoaded', () => {
+(function(){
   const logoSvg = encodeURIComponent(`
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160">
       <defs>
@@ -175,10 +175,19 @@ document.addEventListener('DOMContentLoaded', () => {
     </svg>
   `);
   const logoDataUri = `data:image/svg+xml;charset=UTF-8,${logoSvg}`;
-  document.querySelectorAll('img[src="/logo1.webp"], img[src="/assets/images/logo1.webp"]').forEach((img) => {
-    img.src = logoDataUri;
+  const applyLogo = () => {
+    document.querySelectorAll('img[src="/logo1.webp"], img[src="/assets/images/logo1.webp"]').forEach((img) => {
+      img.src = logoDataUri;
+    });
+  };
+
+  document.addEventListener('DOMContentLoaded', () => {
+    applyLogo();
+    const observer = new MutationObserver(applyLogo);
+    observer.observe(document.body, { childList: true, subtree: true });
+    setTimeout(applyLogo, 300);
   });
-});
+})();
 </script>
 <script type="text/babel">
 const {useState,useEffect,useRef,useCallback}=React;
