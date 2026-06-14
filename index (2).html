@@ -502,12 +502,20 @@ function LandingPage({onNavigate,onToggleTheme,theme}){
     {name:'Ananya Krishnan',role:'Final Year B.Tech',text:'The code editor feels like VS Code but in the browser. Syntax highlighting and autocomplete work perfectly.',avatar:'AK',color:'#10b981'},
   ];
 
+  const logoMark = (
+    <svg viewBox="0 0 160 160" width="36" height="36" style={{borderRadius:10,flexShrink:0}}>
+      <rect width="160" height="160" rx="36" fill="url(#g)"/>
+      <path d="M48 40h30c26 0 42 16 42 42 0 27-16 44-42 44H48V40Zm18 16v52h12c16 0 24-9 24-26 0-16-8-26-24-26h-12Z" fill="#fff"/>
+      <path d="M110 46h18v68h-18z" fill="#93c5fd"/>
+    </svg>
+  );
+
   return(
     <div style={{minHeight:'100vh',overflowX:'hidden'}}>
       {/* NAVBAR */}
       <nav style={{position:'fixed',top:0,left:0,right:0,zIndex:50,padding:'0 40px',height:'72px',display:'flex',alignItems:'center',justifyContent:'space-between',background:scrollY>50?'rgba(8,12,20,0.95)':'transparent',backdropFilter:scrollY>50?'blur(20px)':'none',borderBottom:scrollY>50?'1px solid rgba(255,255,255,0.06)':'none',transition:'all 0.3s'}}>
         <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
-          <img src="/logo1.webp" alt="JNTUA Labs" style={{width:36,height:36,borderRadius:10,objectFit:'cover'}}/>
+          {logoMark}
           <span style={{fontFamily:'var(--display)',fontSize:20,fontWeight:700,letterSpacing:'-0.3px'}}>JNTUA Labs</span>
         </div>
         <div style={{display:'flex',gap:8,alignItems:'center'}}>
@@ -527,7 +535,12 @@ function LandingPage({onNavigate,onToggleTheme,theme}){
         <div style={{position:'absolute',inset:0,backgroundImage:'radial-gradient(circle at 1px 1px,rgba(255,255,255,0.04) 1px,transparent 0)',backgroundSize:'40px 40px'}}/>
         <div style={{maxWidth:900,margin:'0 auto',padding:'0 40px',textAlign:'center',position:'relative',zIndex:1}}>
           <div style={{marginBottom:40,animation:'slide-up 0.6s ease forwards'}}>
-            <img src="/logo1.webp" alt="JNTUA Labs" style={{width:200,height:200,borderRadius:20,objectFit:'cover',margin:'0 auto 40px',display:'block',boxShadow:'0 12px 48px rgba(59,130,246,0.3)'}}/>
+            <div style={{width:200,height:200,borderRadius:20,margin:'0 auto 40px',display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'0 12px 48px rgba(59,130,246,0.3)',background:'linear-gradient(135deg,#2563eb,#7c3aed)',padding:16}}>
+              <svg viewBox="0 0 160 160" width="160" height="160">
+                <path d="M48 40h30c26 0 42 16 42 42 0 27-16 44-42 44H48V40Zm18 16v52h12c16 0 24-9 24-26 0-16-8-26-24-26h-12Z" fill="#fff"/>
+                <path d="M110 46h18v68h-18z" fill="#93c5fd"/>
+              </svg>
+            </div>
             <h1 style={{fontFamily:'var(--display)',fontSize:64,fontWeight:800,marginBottom:16,animation:'slide-up 0.7s ease 0.1s both'}}>
               JNTUA LABS
             </h1>
@@ -582,7 +595,7 @@ function LandingPage({onNavigate,onToggleTheme,theme}){
       {/* FOOTER */}
       <footer style={{borderTop:'1px solid var(--border)',padding:'40px',textAlign:'center'}}>
         <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:10,marginBottom:12}}>
-          <img src="/logo1.webp" alt="JNTUA Labs" style={{width:28,height:28,borderRadius:8,objectFit:'cover'}}/>
+          {logoMark}
           <span style={{fontFamily:'var(--display)',fontWeight:700}}>JNTUA Labs</span>
         </div>
         <p style={{color:'var(--text3)',fontSize:13}}>© 2026 JNTUA Labs. Cloud-Based AI Virtual Lab System. All rights reserved.</p>
