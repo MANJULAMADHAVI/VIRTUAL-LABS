@@ -12,6 +12,10 @@
       "dest": "/assets/$1"
     },
     {
+      "src": "/(.*\\.(?:png|jpg|jpeg|gif|svg|webp|ico|css|js|json|woff|woff2|ttf|map))",
+      "dest": "/$1"
+    },
+    {
       "src": "/api/(.*)",
       "dest": "https://jntua-labs-backend.onrender.com/api/$1"
     },
