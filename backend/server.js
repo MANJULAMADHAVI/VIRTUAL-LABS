@@ -37,7 +37,7 @@ app.use(express.json());
 
 // Health check endpoint for deployment
 app.get("/api/health", (req, res) => {
-  res.json({ status: "ok", timestamp: new Date().toISOString() });
+  res.json({ status: "ok", timestamp: new Date().toISOString(), service: "backend" });
 });
 
 app.use("/api/auth", require("./routes/authRoutes"));
