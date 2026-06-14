@@ -503,11 +503,7 @@ function LandingPage({onNavigate,onToggleTheme,theme}){
   ];
 
   const logoMark = (
-    <svg viewBox="0 0 160 160" width="36" height="36" style={{borderRadius:10,flexShrink:0}}>
-      <rect width="160" height="160" rx="36" fill="url(#g)"/>
-      <path d="M48 40h30c26 0 42 16 42 42 0 27-16 44-42 44H48V40Zm18 16v52h12c16 0 24-9 24-26 0-16-8-26-24-26h-12Z" fill="#fff"/>
-      <path d="M110 46h18v68h-18z" fill="#93c5fd"/>
-    </svg>
+    <img src="file:///C:/Users/Admin/Desktop/logo1.webp" alt="JNTUA Labs" style={{width:36,height:36,borderRadius:10,objectFit:'cover',flexShrink:0}}/>
   );
 
   return(
@@ -536,10 +532,7 @@ function LandingPage({onNavigate,onToggleTheme,theme}){
         <div style={{maxWidth:900,margin:'0 auto',padding:'0 40px',textAlign:'center',position:'relative',zIndex:1}}>
           <div style={{marginBottom:40,animation:'slide-up 0.6s ease forwards'}}>
             <div style={{width:200,height:200,borderRadius:20,margin:'0 auto 40px',display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'0 12px 48px rgba(59,130,246,0.3)',background:'linear-gradient(135deg,#2563eb,#7c3aed)',padding:16}}>
-              <svg viewBox="0 0 160 160" width="160" height="160">
-                <path d="M48 40h30c26 0 42 16 42 42 0 27-16 44-42 44H48V40Zm18 16v52h12c16 0 24-9 24-26 0-16-8-26-24-26h-12Z" fill="#fff"/>
-                <path d="M110 46h18v68h-18z" fill="#93c5fd"/>
-              </svg>
+              <img src="file:///C:/Users/Admin/Desktop/logo1.webp" alt="JNTUA Labs" style={{width:160,height:160,objectFit:'contain',display:'block'}}/>
             </div>
             <h1 style={{fontFamily:'var(--display)',fontSize:64,fontWeight:800,marginBottom:16,animation:'slide-up 0.7s ease 0.1s both'}}>
               JNTUA LABS
