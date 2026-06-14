@@ -6,14 +6,18 @@
       "use": "@vercel/static"
     }
   ],
-  "rewrites": [
+  "routes": [
     {
-      "source": "/api/(.*)",
-      "destination": "https://jntua-labs-backend.onrender.com/api/$1"
+      "src": "/assets/(.*)",
+      "dest": "/assets/$1"
     },
     {
-      "source": "/(.*)",
-      "destination": "/index (2).html"
+      "src": "/api/(.*)",
+      "dest": "https://jntua-labs-backend.onrender.com/api/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index (2).html"
     }
   ]
 }
