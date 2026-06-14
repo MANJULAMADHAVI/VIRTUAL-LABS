@@ -486,7 +486,7 @@ function LandingPage({onNavigate,onToggleTheme,theme}){
       {/* NAVBAR */}
       <nav style={{position:'fixed',top:0,left:0,right:0,zIndex:50,padding:'0 40px',height:'72px',display:'flex',alignItems:'center',justifyContent:'space-between',background:scrollY>50?'rgba(8,12,20,0.95)':'transparent',backdropFilter:scrollY>50?'blur(20px)':'none',borderBottom:scrollY>50?'1px solid rgba(255,255,255,0.06)':'none',transition:'all 0.3s'}}>
         <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
-          <img src="/public/assets/images/logo1.webp" alt="JNTUA Labs" style={{width:36,height:36,borderRadius:10,objectFit:'cover'}}/>
+          <img src="/logo1.webp" alt="JNTUA Labs" style={{width:36,height:36,borderRadius:10,objectFit:'cover'}}/>
           <span style={{fontFamily:'var(--display)',fontSize:20,fontWeight:700,letterSpacing:'-0.3px'}}>JNTUA Labs</span>
         </div>
         <div style={{display:'flex',gap:8,alignItems:'center'}}>
@@ -812,7 +812,7 @@ function StudentDashboard({onNavigate,onLogout,user}){
       {/* SIDEBAR */}
       <aside style={{width:collapsed?60:220,background:'var(--surface)',borderRight:'1px solid var(--border)',display:'flex',flexDirection:'column',transition:'width 0.3s',flexShrink:0,position:'sticky',top:0,height:'100vh',overflow:'hidden'}}>
         <div style={{padding:'20px',display:'flex',alignItems:'center',gap:10,borderBottom:'1px solid var(--border)',marginBottom:8}}>
-          <img src="/public/assets/images/logo1.webp" alt="JNTUA Labs" style={{width:32,height:32,borderRadius:9,objectFit:'cover',flexShrink:0}}/>
+          <img src="/logo1.webp" alt="JNTUA Labs" style={{width:32,height:32,borderRadius:9,objectFit:'cover',flexShrink:0}}/>
           {!collapsed&&<span style={{fontFamily:'var(--display)',fontWeight:700,fontSize:17,whiteSpace:'nowrap'}}>JNTUA Labs</span>}
         </div>
         <div style={{flex:1,padding:'8px',overflowY:'auto'}}>
