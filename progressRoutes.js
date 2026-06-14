@@ -2,7 +2,7 @@ const router = require("express").Router();
 
 const {
     getStudentProgress
-} = require("../controllers/progressController");
+} = require("./backend/controllers/progressController");
 
 router.get("/:student_id", getStudentProgress);
 

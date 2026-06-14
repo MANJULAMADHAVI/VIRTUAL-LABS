@@ -1,0 +1,39 @@
+services:
+  - type: web
+    name: jntua-labs-backend
+    runtime: node
+    plan: free
+    buildCommand: "npm install"
+    startCommand: "npm start"
+    envVars:
+      - key: PORT
+        value: 5000
+      - key: NODE_ENV
+        value: production
+      - key: DB_HOST
+        fromDatabase:
+          name: jntua-labs-db
+          property: host
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_NAME
+        value: jntua_labs
+      - key: JWT_SECRET
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: JUDGE0_API_KEY
+        sync: false
+      - key: CORS_ORIGIN
+        value: https://jntua-labs.vercel.app
+      - key: CLIENT_URL
+        value: https://jntua-labs.vercel.app
+
+databases:
+  - name: jntua-labs-db
+    databaseName: jntua_labs
+    user: railway
+    region: us-east
+    plan: free

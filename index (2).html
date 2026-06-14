@@ -9,6 +9,7 @@
 <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.39.0/min/vs/loader.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{
@@ -365,6 +366,88 @@ int main() {
 }`,
 };
 
+const API_BASE = "/api";
+
+const MONACO_LANGUAGE_MAP = {
+  python: 'python',
+  js: 'javascript',
+  java: 'java',
+  c: 'c',
+  cpp: 'cpp'
+};
+
+const getMonacoLanguage = (language) => MONACO_LANGUAGE_MAP[language] || language || 'python';
+
+const getFallbackReply = (message) => {
+  const text = (message || '').toLowerCase();
+  if (text.includes('recursion')) {
+    return 'Recursion becomes clearer when you identify the base case first. Ask: what is the smallest input that can be solved directly, and how does a larger case become a smaller one?';
+  }
+  if (text.includes('big-o') || text.includes('time complexity')) {
+    return 'Big-O describes how runtime grows as input grows. Count the loops, especially nested loops, and describe the growth in terms of input size.';
+  }
+  if (text.includes('binary search')) {
+    return 'Binary search works best on sorted data. Keep cutting the search space in half until you find the target or prove it is absent.';
+  }
+  if (text.includes('pointer') || text.includes('c')) {
+    return 'In C, pointers hold addresses. Try to picture the memory location each pointer references before changing the code.';
+  }
+  if (text.includes('error') || text.includes('debug')) {
+    return 'For debugging, reproduce the issue with a small example, trace the variable values step by step, and test the edge cases.';
+  }
+  return 'I can help you reason through this step by step. Start by naming the input, the expected output, and the edge case you need to handle first.';
+};
+
+if (window.require && typeof window.require.config === 'function') {
+  window.require.config({ paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.39.0/min/vs' }});
+}
+
+const formatDisplayName = (user) => {
+  if (!user) return 'Student User';
+  if (user.fullName) return user.fullName;
+  const first = user.firstName || '';
+  const last = user.lastName || '';
+  const full = `${first} ${last}`.trim();
+  return full || 'Student User';
+};
+
+const getInitials = (name) => {
+  return name.split(/\s+/).filter(Boolean).map(word => word[0].toUpperCase()).slice(0,2).join('') || 'ST';
+};
+
+const formatDeadline = (value) => {
+  if (!value) return 'No deadline';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
+};
+
+const getDeadlineState = (value) => {
+  if (!value) return { color: 'var(--text2)', label: 'No deadline' };
+  const deadline = new Date(value);
+  if (Number.isNaN(deadline.getTime())) return { color: 'var(--text2)', label: value };
+  const expired = deadline < new Date();
+  return expired
+    ? { color: 'var(--red)', label: `Expired • ${formatDeadline(value)}` }
+    : { color: '#f59e0b', label: `Due • ${formatDeadline(value)}` };
+};
+
+const apiRequest = async (endpoint, method = "POST", body = null) => {
+  const headers = { "Content-Type": "application/json" };
+  const token = localStorage.getItem('authToken');
+  if (token) headers.Authorization = `Bearer ${token}`;
+
+  const options = { method, headers };
+  if (body) options.body = JSON.stringify(body);
+
+  const response = await fetch(`${API_BASE}${endpoint}`, options);
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(data.message || "Backend request failed");
+  }
+  return data;
+};
+
 // ─── LANDING PAGE ──────────────────────────────────────────────────
 function LandingPage({onNavigate,onToggleTheme,theme}){
   const [scrollY,setScrollY]=useState(0);
@@ -403,7 +486,7 @@ function LandingPage({onNavigate,onToggleTheme,theme}){
       {/* NAVBAR */}
       <nav style={{position:'fixed',top:0,left:0,right:0,zIndex:50,padding:'0 40px',height:'72px',display:'flex',alignItems:'center',justifyContent:'space-between',background:scrollY>50?'rgba(8,12,20,0.95)':'transparent',backdropFilter:scrollY>50?'blur(20px)':'none',borderBottom:scrollY>50?'1px solid rgba(255,255,255,0.06)':'none',transition:'all 0.3s'}}>
         <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
-          <img src="http://localhost:8000/logo1.webp" alt="JNTUA Labs" style={{width:36,height:36,borderRadius:10,objectFit:'cover'}}/>
+          <img src="logo1.webp" alt="JNTUA Labs" style={{width:36,height:36,borderRadius:10,objectFit:'cover'}}/>
           <span style={{fontFamily:'var(--display)',fontSize:20,fontWeight:700,letterSpacing:'-0.3px'}}>JNTUA Labs</span>
         </div>
         <div style={{display:'flex',gap:8,alignItems:'center'}}>
@@ -423,7 +506,7 @@ function LandingPage({onNavigate,onToggleTheme,theme}){
         <div style={{position:'absolute',inset:0,backgroundImage:'radial-gradient(circle at 1px 1px,rgba(255,255,255,0.04) 1px,transparent 0)',backgroundSize:'40px 40px'}}/>
         <div style={{maxWidth:900,margin:'0 auto',padding:'0 40px',textAlign:'center',position:'relative',zIndex:1}}>
           <div style={{marginBottom:40,animation:'slide-up 0.6s ease forwards'}}>
-            <img src="http://localhost:8000/logo1.webp" alt="JNTUA Labs" style={{width:200,height:200,borderRadius:20,objectFit:'cover',margin:'0 auto 40px',display:'block',boxShadow:'0 12px 48px rgba(59,130,246,0.3)'}}/>
+            <img src="logo1.webp" alt="JNTUA Labs" style={{width:200,height:200,borderRadius:20,objectFit:'cover',margin:'0 auto 40px',display:'block',boxShadow:'0 12px 48px rgba(59,130,246,0.3)'}}/>
             <h1 style={{fontFamily:'var(--display)',fontSize:64,fontWeight:800,marginBottom:16,animation:'slide-up 0.7s ease 0.1s both'}}>
               JNTUA LABS
             </h1>
@@ -442,15 +525,6 @@ function LandingPage({onNavigate,onToggleTheme,theme}){
               Faculty Portal →
             </button>
           </div>
-          {/* Live Stats */}
-          <div style={{display:'flex',gap:40,justifyContent:'center',marginTop:64,flexWrap:'wrap',animation:'slide-up 0.7s ease 0.4s both'}}>
-            {[['12,400+','Questions Solved'],['98ms','Avg Execution Time'],['5 Languages','Supported'],['99.9%','Uptime SLA']].map(([v,l])=>(
-              <div key={l} style={{textAlign:'center'}}>
-                <div style={{fontSize:28,fontWeight:700,fontFamily:'var(--display)',color:'var(--accent2)'}}>{v}</div>
-                <div style={{fontSize:12,color:'var(--text3)',marginTop:4,fontWeight:500}}>{l}</div>
-              </div>
-            ))}
-          </div>
         </div>
       </section>
 
@@ -459,7 +533,6 @@ function LandingPage({onNavigate,onToggleTheme,theme}){
         <div style={{textAlign:'center',marginBottom:72}}>
           <div className="badge badge-blue" style={{marginBottom:16}}>Features</div>
           <h2 style={{fontFamily:'var(--display)',fontSize:48,fontWeight:800,letterSpacing:'-1px',marginBottom:16}}>Everything you need to learn</h2>
-          <p style={{fontSize:18,color:'var(--text2)',maxWidth:500,margin:'0 auto'}}>One platform built for students, faculty, and administrators.</p>
         </div>
         <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(340px,1fr))',gap:24}}>
           {features.map((f,i)=>(
@@ -479,7 +552,6 @@ function LandingPage({onNavigate,onToggleTheme,theme}){
         <div className="hero-orb" style={{width:400,height:400,background:'rgba(59,130,246,0.1)',top:'50%',left:'50%',transform:'translate(-50%,-50%)'}}/>
         <div style={{position:'relative',zIndex:1}}>
           <h2 style={{fontFamily:'var(--display)',fontSize:52,fontWeight:800,letterSpacing:'-1.5px',marginBottom:20}}>Ready to start coding?</h2>
-          <p style={{fontSize:18,color:'var(--text2)',marginBottom:40}}>Join thousands of students already using JNTUA Labs.</p>
           <button className="btn-primary" onClick={()=>onNavigate('register')} style={{fontSize:17,padding:'16px 48px',animation:'glow-pulse 3s infinite'}}>
             Create Free Account
           </button>
@@ -489,7 +561,7 @@ function LandingPage({onNavigate,onToggleTheme,theme}){
       {/* FOOTER */}
       <footer style={{borderTop:'1px solid var(--border)',padding:'40px',textAlign:'center'}}>
         <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:10,marginBottom:12}}>
-          <img src="C:\Users\Admin\Desktop\logo1.webp" alt="JNTUA Labs" style={{width:28,height:28,borderRadius:8,objectFit:'cover'}}/>
+          <img src="logo1.webp" alt="JNTUA Labs" style={{width:28,height:28,borderRadius:8,objectFit:'cover'}}/>
           <span style={{fontFamily:'var(--display)',fontWeight:700}}>JNTUA Labs</span>
         </div>
         <p style={{color:'var(--text3)',fontSize:13}}>© 2026 JNTUA Labs. Cloud-Based AI Virtual Lab System. All rights reserved.</p>
@@ -506,30 +578,31 @@ function LoginPage({onNavigate,onLogin}){
   const [pass,setPass]=useState('');
   const [showPass,setShowPass]=useState(false);
   const [loading,setLoading]=useState(false);
+  const [message,setMessage]=useState('');
+  const [error,setError]=useState('');
 
-  const handleLogin=async()=>{
-    if(!email||!pass){alert('Please enter email and password');return;}
+  const handleLogin=async ()=>{
+    setError('');
+    setMessage('');
+    if(!email.trim() || !pass.trim()){
+      setError('Please enter both email and password.');
+      return;
+    }
+
     setLoading(true);
-    try{
-      const res=await fetch('http://localhost:5000/api/auth/login',{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({email,password:pass,role})
+    try {
+      const data = await apiRequest('/auth/login', 'POST', { email, password: pass });
+      onLogin({
+        role: data.role,
+        userId: data.userId,
+        token: data.token,
+        firstName: data.firstName,
+        lastName: data.lastName,
       });
-      const data=await res.json();
-      if(res.ok){
-        localStorage.setItem('token',data.token);
-        localStorage.setItem('role',role);
-        localStorage.setItem('userId',data.userId);
-        localStorage.setItem('firstName',data.firstName||'');
-        localStorage.setItem('lastName',data.lastName||'');
-        onLogin(role);
-      }else{
-        alert(data.message||'Login failed');
-      }
-    }catch(err){
-      alert('Error: '+err.message);
-    }finally{
+      setMessage('Login successful. Redirecting...');
+    } catch (err) {
+      setError(err.message || 'Login failed.');
+    } finally {
       setLoading(false);
     }
   };
@@ -542,7 +615,7 @@ function LoginPage({onNavigate,onLogin}){
         <div className="hero-orb" style={{width:300,height:300,background:'rgba(59,130,246,0.15)',bottom:0,right:0}}/>
         <div style={{position:'relative',zIndex:1}}>
           <div style={{cursor:'pointer',display:'inline-flex',alignItems:'center',gap:8,marginBottom:60}} onClick={()=>onNavigate('landing')}>
-            <img src="C:\Users\Admin\Desktop\logo1.webp" alt="JNTUA Labs" style={{width:36,height:36,borderRadius:10,objectFit:'cover'}}/>
+            <img src="logo1.webp" alt="JNTUA Labs" style={{width:36,height:36,borderRadius:10,objectFit:'cover'}}/>
             <span style={{fontFamily:'var(--display)',fontSize:20,fontWeight:700}}>JNTUA Labs</span>
           </div>
           <h2 style={{fontFamily:'var(--display)',fontSize:40,fontWeight:800,lineHeight:1.1,marginBottom:20,letterSpacing:'-1px'}}>Code. Learn.<br/>Excel.</h2>
@@ -559,13 +632,13 @@ function LoginPage({onNavigate,onLogin}){
           </div>
           <div style={{marginTop:48,padding:'20px',borderRadius:12,background:'rgba(59,130,246,0.06)',border:'1px solid rgba(59,130,246,0.15)'}}>
             <div style={{display:'flex',gap:16,marginBottom:12}}>
-              <div style={{width:36,height:36,borderRadius:'50%',background:'rgba(16,185,129,0.2)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:13,fontWeight:700,color:'#34d399',flexShrink:0}}>AK</div>
+              <div style={{width:36,height:36,borderRadius:'50%',background:'rgba(59,130,246,0.18)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:13,fontWeight:700,color:'#3b82f6',flexShrink:0}}>AI</div>
               <div>
-                <div style={{fontSize:13,fontWeight:600,marginBottom:4}}>Anjali Kumar</div>
-                <div style={{fontSize:12,color:'var(--text3)'}}>Top performer this week · Python Lab</div>
+                <div style={{fontSize:13,fontWeight:600,marginBottom:4}}>Your AI study companion</div>
+                <div style={{fontSize:12,color:'var(--text3)'}}>Personalized learning, instant feedback, zero fluff.</div>
               </div>
             </div>
-            <div style={{fontSize:13,color:'var(--text2)',fontStyle:'italic'}}>"Solved 3 problems in under 40 minutes using only the AI hints — never felt smarter!"</div>
+            <div style={{fontSize:13,color:'var(--text2)',fontStyle:'italic'}}>"Start solving problems with real-time support and a smarter coding workflow."</div>
           </div>
         </div>
       </div>
@@ -608,6 +681,8 @@ function LoginPage({onNavigate,onLogin}){
             </label>
             <button style={{background:'none',border:'none',color:'var(--accent2)',fontSize:13,cursor:'pointer',fontFamily:'var(--font)'}}>Forgot password?</button>
           </div>
+          {error && <div style={{color:'#ef4444',fontSize:13,marginBottom:16}}>{error}</div>}
+          {message && <div style={{color:'#34d399',fontSize:13,marginBottom:16}}>{message}</div>}
 
           <button className="btn-primary" onClick={handleLogin} style={{width:'100%',padding:'14px',fontSize:15,display:'flex',alignItems:'center',justifyContent:'center',gap:8}}>
             {loading?<><div style={{width:16,height:16,border:'2px solid rgba(255,255,255,0.3)',borderTop:'2px solid #fff',borderRadius:'50%',animation:'rotate 0.8s linear infinite'}}/> Signing in...</>:'Sign In →'}
@@ -619,16 +694,6 @@ function LoginPage({onNavigate,onLogin}){
               Register
             </button>
           </p>
-
-          {/* DEMO LOGINS */}
-          <div style={{marginTop:32,padding:'16px',borderRadius:10,background:'var(--bg2)',border:'1px solid var(--border)'}}>
-            <p style={{fontSize:11,color:'var(--text3)',fontWeight:600,letterSpacing:'1px',textTransform:'uppercase',marginBottom:10}}>Demo Credentials</p>
-            {[{r:'student',e:'student@demo.edu'},{r:'faculty',e:'faculty@demo.edu'},{r:'admin',e:'admin@demo.edu'}].map(d=>(
-              <button key={d.r} onClick={()=>{setRole(d.r);setEmail(d.e);setPass('demo1234');}} style={{display:'block',width:'100%',textAlign:'left',background:'none',border:'none',color:'var(--text2)',fontSize:12,cursor:'pointer',padding:'4px 0',fontFamily:'var(--mono)',transition:'color 0.2s'}}>
-                <span style={{color:'var(--accent2)'}}>{d.r}</span> · {d.e}
-              </button>
-            ))}
-          </div>
         </div>
       </div>
     </div>
@@ -637,41 +702,42 @@ function LoginPage({onNavigate,onLogin}){
 
 // ─── REGISTER PAGE ─────────────────────────────────────────────────
 function RegisterPage({onNavigate}){
-  const [step,setStep]=useState(1);
   const [role,setRole]=useState('student');
   const [firstName,setFirstName]=useState('');
   const [lastName,setLastName]=useState('');
   const [email,setEmail]=useState('');
   const [password,setPassword]=useState('');
-  const [confirmPass,setConfirmPass]=useState('');
+  const [confirmPassword,setConfirmPassword]=useState('');
   const [loading,setLoading]=useState(false);
+  const [message,setMessage]=useState('');
+  const [error,setError]=useState('');
 
-  const handleRegister=async()=>{
-    if(!firstName||!lastName||!email||!password||!confirmPass){
-      alert('Please fill all fields');
+  const handleRegister=async ()=>{
+    setError('');
+    setMessage('');
+    if(!firstName.trim() || !lastName.trim() || !email.trim() || !password || !confirmPassword){
+      setError('Please fill in all required fields.');
       return;
     }
-    if(password!==confirmPass){
-      alert('Passwords do not match');
+    if(password !== confirmPassword){
+      setError('Passwords do not match.');
       return;
     }
+
     setLoading(true);
-    try{
-      const res=await fetch('http://localhost:5000/api/auth/register',{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({firstName,lastName,email,password,role})
+    try {
+      await apiRequest('/auth/register', 'POST', {
+        firstName,
+        lastName,
+        email,
+        password,
+        role,
       });
-      const data=await res.json();
-      if(res.ok){
-        alert('Registration successful! Please login.');
-        onNavigate('login');
-      }else{
-        alert(data.message||'Registration failed');
-      }
-    }catch(err){
-      alert('Error: '+err.message);
-    }finally{
+      setMessage('Account created successfully! Redirecting to login...');
+      setTimeout(()=>onNavigate('login'), 1200);
+    } catch (err) {
+      setError(err.message || 'Registration failed.');
+    } finally {
       setLoading(false);
     }
   };
@@ -683,7 +749,7 @@ function RegisterPage({onNavigate}){
       <div style={{width:'100%',maxWidth:480,position:'relative',zIndex:1}}>
         <div style={{textAlign:'center',marginBottom:36}}>
           <div style={{cursor:'pointer',display:'inline-flex',alignItems:'center',gap:8,marginBottom:20}} onClick={()=>onNavigate('landing')}>
-            <img src="C:\\Users\\Admin\\Desktop\\logo1.webp" alt="JNTUA Labs" style={{width:32,height:32,borderRadius:9,objectFit:'cover'}}/>
+            <img src="logo1.webp" alt="JNTUA Labs" style={{width:32,height:32,borderRadius:9,objectFit:'cover'}}/>
             <span style={{fontFamily:'var(--display)',fontSize:18,fontWeight:700}}>JNTUA Labs</span>
           </div>
           <h1 style={{fontFamily:'var(--display)',fontSize:30,fontWeight:800,letterSpacing:'-0.5px',marginBottom:6}}>Create your account</h1>
@@ -703,12 +769,14 @@ function RegisterPage({onNavigate}){
               <div><label>Last Name</label><input type="text" placeholder="Singh" value={lastName} onChange={e=>setLastName(e.target.value)}/></div>
             </div>
             <div><label>Email</label><input type="email" placeholder={`${role}@university.edu`} value={email} onChange={e=>setEmail(e.target.value)}/></div>
+            {role==='student'&&<div><label>Student ID</label><input type="text" placeholder="CS2024001"/></div>}
+            {role==='faculty'&&<div><label>Employee ID</label><input type="text" placeholder="FAC001"/></div>}
             <div><label>Password</label><input type="password" placeholder="Min. 8 characters" value={password} onChange={e=>setPassword(e.target.value)}/></div>
-            <div><label>Confirm Password</label><input type="password" placeholder="Re-enter password" value={confirmPass} onChange={e=>setConfirmPass(e.target.value)}/></div>
+            <div><label>Confirm Password</label><input type="password" placeholder="Re-enter password" value={confirmPassword} onChange={e=>setConfirmPassword(e.target.value)}/></div>
           </div>
-          <button className="btn-primary" onClick={handleRegister} style={{width:'100%',padding:'14px',fontSize:15,display:'flex',alignItems:'center',justifyContent:'center',gap:8}} disabled={loading}>
-            {loading?<><div style={{width:16,height:16,border:'2px solid rgba(255,255,255,0.3)',borderTop:'2px solid #fff',borderRadius:'50%',animation:'rotate 0.8s linear infinite'}}/>Creating...</>:'Create Account →'}
-          </button>
+          {error && <div style={{color:'#ef4444',fontSize:13,marginBottom:16}}>{error}</div>}
+          {message && <div style={{color:'#34d399',fontSize:13,marginBottom:16}}>{message}</div>}
+          <button className="btn-primary" onClick={handleRegister} style={{width:'100%',padding:'14px',fontSize:15}} disabled={loading}>{loading?'Creating...':'Create Account →'}</button>
           <p style={{textAlign:'center',marginTop:16,fontSize:13,color:'var(--text2)'}}>
             Already have an account?{' '}
             <button onClick={()=>onNavigate('login')} style={{background:'none',border:'none',color:'var(--accent2)',cursor:'pointer',fontFamily:'var(--font)',fontWeight:600,fontSize:13}}>Sign in</button>
@@ -720,9 +788,13 @@ function RegisterPage({onNavigate}){
 }
 
 // ─── STUDENT DASHBOARD ─────────────────────────────────────────────
-function StudentDashboard({onNavigate,onLogout}){
+function StudentDashboard({onNavigate,onLogout,user}){
   const [page,setPage]=useState('home');
   const [collapsed,setCollapsed]=useState(false);
+
+  const displayName = formatDisplayName(user);
+  const initials = getInitials(displayName);
+  const roleLabel = user?.role === 'faculty' ? 'Faculty' : user?.role === 'admin' ? 'Administrator' : 'Student';
 
   const navItems=[
     {id:'home',label:'Dashboard',icon:'home'},
@@ -740,7 +812,7 @@ function StudentDashboard({onNavigate,onLogout}){
       {/* SIDEBAR */}
       <aside style={{width:collapsed?60:220,background:'var(--surface)',borderRight:'1px solid var(--border)',display:'flex',flexDirection:'column',transition:'width 0.3s',flexShrink:0,position:'sticky',top:0,height:'100vh',overflow:'hidden'}}>
         <div style={{padding:'20px',display:'flex',alignItems:'center',gap:10,borderBottom:'1px solid var(--border)',marginBottom:8}}>
-          <img src="C:\Users\Admin\Desktop\logo1.webp" alt="JNTUA Labs" style={{width:32,height:32,borderRadius:9,objectFit:'cover',flexShrink:0}}/>
+          <img src="logo1.webp" alt="JNTUA Labs" style={{width:32,height:32,borderRadius:9,objectFit:'cover',flexShrink:0}}/>
           {!collapsed&&<span style={{fontFamily:'var(--display)',fontWeight:700,fontSize:17,whiteSpace:'nowrap'}}>JNTUA Labs</span>}
         </div>
         <div style={{flex:1,padding:'8px',overflowY:'auto'}}>
@@ -754,10 +826,10 @@ function StudentDashboard({onNavigate,onLogout}){
         <div style={{padding:'8px',borderTop:'1px solid var(--border)'}}>
           {!collapsed&&(
             <div style={{padding:'12px',borderRadius:10,background:'var(--bg3)',marginBottom:8,display:'flex',alignItems:'center',gap:10}}>
-              <div style={{width:32,height:32,borderRadius:'50%',background:'linear-gradient(135deg,#3b82f6,#10b981)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:12,fontWeight:700,color:'#fff',flexShrink:0}}>{(localStorage.getItem('firstName')||'S')[0]}{(localStorage.getItem('lastName')||'U')[0]}</div>
+              <div style={{width:32,height:32,borderRadius:'50%',background:'linear-gradient(135deg,#3b82f6,#10b981)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:12,fontWeight:700,color:'#fff',flexShrink:0}}>{initials}</div>
               <div style={{overflow:'hidden'}}>
-                <div style={{fontSize:13,fontWeight:600,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{(localStorage.getItem('firstName')||'Student')+' '+(localStorage.getItem('lastName')||'')}</div>
-                <div style={{fontSize:11,color:'var(--text3)'}}>CS · Sem 4</div>
+                <div style={{fontSize:13,fontWeight:600,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{displayName}</div>
+                <div style={{fontSize:11,color:'var(--text3)'}}>{roleLabel}</div>
               </div>
             </div>
           )}
@@ -791,9 +863,9 @@ function StudentDashboard({onNavigate,onLogout}){
         </header>
 
         <div style={{padding:'28px'}}>
-          {page==='home'&&<StudentHome setPage={setPage}/>}
+          {page==='home'&&<StudentHome setPage={setPage} user={user}/>}
           {page==='labs'&&<LabSelection setPage={setPage}/>}
-          {page==='editor'&&<CodeEditor/>}
+          {page==='editor'&&<CodeEditor user={user}/>} 
           {page==='ai'&&<AIAssistant/>}
           {page==='assignments'&&<Assignments/>}
           {page==='progress'&&<ProgressPage/>}
@@ -805,34 +877,45 @@ function StudentDashboard({onNavigate,onLogout}){
   );
 }
 
-function StudentHome({setPage}){
-  const [userName,setUserName]=useState('Student');
-  
+function StudentHome({setPage,user}){
+  const [questions,setQuestions]=useState([]);
+  const [loadingQuestions,setLoadingQuestions]=useState(false);
+
   useEffect(()=>{
-    const firstName=localStorage.getItem('firstName')||'Student';
-    setUserName(firstName);
+    setLoadingQuestions(true);
+    apiRequest('/questions','GET')
+      .then(data=>{
+        setQuestions(Array.isArray(data)?data:data.questions||[]);
+      })
+      .catch(err=>{
+        console.error('Failed to load questions', err);
+      })
+      .finally(()=>setLoadingQuestions(false));
   },[]);
 
+  const pendingCount = questions.filter(q => !q.deadline || new Date(q.deadline) >= new Date()).length;
+  const urgentCount = questions.filter(q => q.deadline && new Date(q.deadline) <= new Date(Date.now() + 86400000)).length;
   const stats=[
-    {label:'Problems Solved',value:'47',delta:'+5 this week',up:true,color:'#3b82f6',icon:'check'},
-    {label:'Current Streak',value:'12',delta:'days',up:true,color:'#10b981',icon:'zap'},
-    {label:'Lab Sessions',value:'23',delta:'+2 today',up:true,color:'#8b5cf6',icon:'flask'},
-    {label:'Rank',value:'#8',delta:'↑3 positions',up:true,color:'#f59e0b',icon:'trophy'},
+    {label:'Questions Assigned',value:questions.length.toString(),delta:'faculty added',up:true,color:'#3b82f6',icon:'book'},
+    {label:'Pending',value:pendingCount.toString(),delta:'open tasks',up:true,color:'#10b981',icon:'check'},
+    {label:'Due Soon',value:urgentCount.toString(),delta:'within 24h',up:true,color:'#f59e0b',icon:'clock'},
+    {label:'Faculty Added',value:questions.length ? 'Live' : '0',delta:'from backend',up:true,color:'#8b5cf6',icon:'users'},
   ];
-  const recentProblems=[
-    {title:'Fibonacci Sequence',lang:'Python',diff:'Easy',status:'solved',marks:10,time:'12 min'},
-    {title:'Binary Search Tree',lang:'Java',diff:'Medium',status:'solved',marks:20,time:'28 min'},
-    {title:'Merge Sort',lang:'C++',diff:'Medium',status:'attempted',marks:20,time:'—'},
-    {title:'Graph Traversal (BFS)',lang:'Python',diff:'Hard',status:'pending',marks:30,time:'—'},
-  ];
+  const recentProblems = questions.slice(0,4).map(q=>({
+    title: q.title || 'Untitled Problem',
+    lang: q.language || 'Python',
+    diff: q.difficulty || 'Medium',
+    marks: q.marks || 10,
+    time: q.deadline ? getDeadlineState(q.deadline).label : 'No deadline',
+    deadline: q.deadline
+  }));
   const diffColors={Easy:'green',Medium:'amber',Hard:'red'};
-  const statusColors={solved:'green',attempted:'amber',pending:'blue'};
 
   return(
     <div style={{animation:'slide-up 0.5s ease'}}>
       <div style={{marginBottom:28}}>
-        <h1 style={{fontFamily:'var(--display)',fontSize:26,fontWeight:800,letterSpacing:'-0.5px',marginBottom:4}}>Good morning, {userName} 👋</h1>
-        <p style={{color:'var(--text2)',fontSize:14}}>You have 2 pending assignments due today. Keep your streak alive!</p>
+        <h1 style={{fontFamily:'var(--display)',fontSize:26,fontWeight:800,letterSpacing:'-0.5px',marginBottom:4}}>Good morning, {formatDisplayName(user)} 👋</h1>
+        <p style={{color:'var(--text2)',fontSize:14}}>{questions.length ? `You have ${questions.length} faculty-assigned questions ready to solve.` : 'No faculty questions have been added yet.'}</p>
       </div>
 
       {/* STREAK BANNER */}
@@ -869,14 +952,14 @@ function StudentHome({setPage}){
             <button className="btn-ghost" style={{padding:'5px 12px',fontSize:12}} onClick={()=>setPage('assignments')}>View all</button>
           </div>
           {recentProblems.map((p,i)=>(
-            <div key={p.title} style={{display:'grid',gridTemplateColumns:'2fr 80px 80px 80px',alignItems:'center',padding:'13px 20px',borderBottom:i<recentProblems.length-1?'1px solid var(--border)':'none',transition:'background 0.15s',cursor:'pointer'}} onMouseOver={e=>e.currentTarget.style.background='rgba(255,255,255,0.02)'} onMouseOut={e=>e.currentTarget.style.background='none'}>
+            <div key={p.title} style={{display:'grid',gridTemplateColumns:'2fr 80px 80px 120px',alignItems:'center',padding:'13px 20px',borderBottom:i<recentProblems.length-1?'1px solid var(--border)':'none',transition:'background 0.15s',cursor:'pointer'}} onMouseOver={e=>e.currentTarget.style.background='rgba(255,255,255,0.02)'} onMouseOut={e=>e.currentTarget.style.background='none'}>
               <div>
                 <div style={{fontSize:14,fontWeight:500,marginBottom:3}}>{p.title}</div>
                 <div style={{fontSize:11,color:'var(--text3)'}}>{p.lang}</div>
               </div>
               <span className={`badge badge-${diffColors[p.diff]}`} style={{fontSize:10}}>{p.diff}</span>
-              <span className={`badge badge-${statusColors[p.status]}`} style={{fontSize:10,textTransform:'capitalize'}}>{p.status}</span>
-              <span style={{fontSize:12,color:'var(--text3)',textAlign:'right'}}>{p.time}</span>
+              <span className="badge badge-blue" style={{fontSize:10}}>Faculty</span>
+              <span style={{fontSize:11,color:p.deadline?getDeadlineState(p.deadline).color:'var(--text3)',textAlign:'right'}}>{p.time}</span>
             </div>
           ))}
         </div>
@@ -899,47 +982,76 @@ function StudentHome({setPage}){
 
 function LabSelection({setPage}){
   const [selected,setSelected]=useState(null);
+  const [questions,setQuestions]=useState([]);
+  const [loadingQuestions,setLoadingQuestions]=useState(false);
+
+  useEffect(()=>{
+    setLoadingQuestions(true);
+    apiRequest('/questions','GET')
+      .then(data=>{
+        setQuestions(Array.isArray(data)?data:data.questions||[]);
+      })
+      .catch(err=>{
+        console.error('Failed to load lab questions', err);
+      })
+      .finally(()=>setLoadingQuestions(false));
+  },[]);
+
+  const getLabMetrics = (langId) => {
+    const langQuestions = questions.filter(q => (q.language || '').toLowerCase() === langId.toLowerCase());
+    const openCount = langQuestions.filter(q => !q.deadline || new Date(q.deadline) >= new Date()).length;
+    const dueSoonCount = langQuestions.filter(q => q.deadline && new Date(q.deadline) <= new Date(Date.now() + 86400000)).length;
+    return {
+      total: langQuestions.length,
+      open: openCount,
+      dueSoon: dueSoonCount
+    };
+  };
+
   return(
     <div style={{animation:'slide-up 0.5s ease'}}>
       <div style={{marginBottom:28}}>
         <h1 style={{fontFamily:'var(--display)',fontSize:24,fontWeight:800,letterSpacing:'-0.5px',marginBottom:4}}>Programming Labs</h1>
-        <p style={{color:'var(--text2)',fontSize:14}}>Select a language to enter its dedicated coding environment</p>
+        <p style={{color:'var(--text2)',fontSize:14}}>{loadingQuestions ? 'Loading your assigned questions…' : 'Select a language to enter its dedicated coding environment'}</p>
       </div>
       <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(300px,1fr))',gap:20}}>
-        {LANGUAGES.map(l=>(
-          <div key={l.id} className="card" style={{padding:28,cursor:'pointer',border:selected===l.id?`1px solid ${l.color}`:'1px solid var(--border)',position:'relative',overflow:'hidden'}} onClick={()=>{setSelected(l.id);setTimeout(()=>setPage('editor'),300);}}>
-            <div style={{position:'absolute',top:-30,right:-30,width:120,height:120,borderRadius:'50%',background:l.bg,pointerEvents:'none'}}/>
-            <div style={{display:'flex',alignItems:'center',gap:14,marginBottom:16}}>
-              <div style={{fontSize:36}}>{l.icon}</div>
-              <div>
-                <div style={{fontFamily:'var(--display)',fontSize:20,fontWeight:800}}>{l.name} Lab</div>
-                <div style={{fontSize:12,color:'var(--text3)',marginTop:2}}>{l.desc}</div>
-              </div>
-              {selected===l.id&&<div style={{marginLeft:'auto'}}><Icon name="check" size={18} color={l.color}/></div>}
-            </div>
-            <div style={{display:'flex',gap:8,flexWrap:'wrap',marginBottom:16}}>
-              {['Assignments','Practice','Exams'].map(t=><span key={t} className="badge badge-blue" style={{fontSize:10}}>{t}</span>)}
-            </div>
-            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:10}}>
-              {[['Questions','24'],['Solved','17'],['Pending','7']].map(([k,v])=>(
-                <div key={k} style={{textAlign:'center',padding:'8px',background:'var(--bg2)',borderRadius:8}}>
-                  <div style={{fontSize:16,fontWeight:700,color:l.color}}>{v}</div>
-                  <div style={{fontSize:10,color:'var(--text3)',marginTop:2}}>{k}</div>
+        {LANGUAGES.map(l=>{
+          const metrics = getLabMetrics(l.id);
+          return (
+            <div key={l.id} className="card" style={{padding:28,cursor:'pointer',border:selected===l.id?`1px solid ${l.color}`:'1px solid var(--border)',position:'relative',overflow:'hidden'}} onClick={()=>{setSelected(l.id);setTimeout(()=>setPage('editor'),300);}}>
+              <div style={{position:'absolute',top:-30,right:-30,width:120,height:120,borderRadius:'50%',background:l.bg,pointerEvents:'none'}}/>
+              <div style={{display:'flex',alignItems:'center',gap:14,marginBottom:16}}>
+                <div style={{fontSize:36}}>{l.icon}</div>
+                <div>
+                  <div style={{fontFamily:'var(--display)',fontSize:20,fontWeight:800}}>{l.name} Lab</div>
+                  <div style={{fontSize:12,color:'var(--text3)',marginTop:2}}>{l.desc}</div>
                 </div>
-              ))}
+                {selected===l.id&&<div style={{marginLeft:'auto'}}><Icon name="check" size={18} color={l.color}/></div>}
+              </div>
+              <div style={{display:'flex',gap:8,flexWrap:'wrap',marginBottom:16}}>
+                {['Assignments','Practice','Exams'].map(t=><span key={t} className="badge badge-blue" style={{fontSize:10}}>{t}</span>)}
+              </div>
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:10}}>
+                {[['Questions',metrics.total],['Open',metrics.open],['Due Soon',metrics.dueSoon]].map(([k,v])=>(
+                  <div key={k} style={{textAlign:'center',padding:'8px',background:'var(--bg2)',borderRadius:8}}>
+                    <div style={{fontSize:16,fontWeight:700,color:l.color}}>{v}</div>
+                    <div style={{fontSize:10,color:'var(--text3)',marginTop:2}}>{k}</div>
+                  </div>
+                ))}
+              </div>
+              <button className="btn-primary" style={{width:'100%',marginTop:16,background:`linear-gradient(135deg,${l.tagColor},${l.tagColor}99)`}} onClick={()=>setPage('editor')}>
+                Open Lab →
+              </button>
             </div>
-            <button className="btn-primary" style={{width:'100%',marginTop:16,background:`linear-gradient(135deg,${l.tagColor},${l.tagColor}99)`}} onClick={()=>setPage('editor')}>
-              Open Lab →
-            </button>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
 }
 
 // ─── CODE EDITOR ───────────────────────────────────────────────────
-function CodeEditor(){
+function CodeEditor({user}){
   const [lang,setLang]=useState('python');
   const [code,setCode]=useState(CODE_SAMPLES.python);
   const [output,setOutput]=useState('');
@@ -952,7 +1064,9 @@ function CodeEditor(){
   const [activeTab,setActiveTab]=useState(0);
   const [showInput,setShowInput]=useState(false);
   const [stdin,setStdin]=useState('');
-  const textareaRef=useRef();
+  const editorContainerRef=useRef(null);
+  const monacoEditorRef=useRef(null);
+  const monacoRef=useRef(null);
 
   const tabs=[
     {name:'main.py',lang:'python'},
@@ -962,68 +1076,101 @@ function CodeEditor(){
 
   useEffect(()=>{setCode(CODE_SAMPLES[lang]||'# Write your code here\n');},[lang]);
 
-  const runCode=()=>{
+  useEffect(()=>{
+    const loadMonaco = () => {
+      if (!window.require || !window.require.config) return;
+      if (!editorContainerRef.current) return;
+
+      window.require(['vs/editor/editor.main'], monaco => {
+        monacoRef.current = monaco;
+        if (monacoEditorRef.current) return;
+
+        monacoEditorRef.current = monaco.editor.create(editorContainerRef.current, {
+          value: code,
+          language: getMonacoLanguage(lang),
+          theme: document.body.classList.contains('light-theme') ? 'vs' : 'vs-dark',
+          automaticLayout: true,
+          minimap: { enabled: false },
+          fontFamily: 'JetBrains Mono, monospace',
+          fontSize: 13,
+          lineNumbers: 'on',
+          scrollBeyondLastLine: false,
+          wordWrap: 'on'
+        });
+
+        monacoEditorRef.current.onDidChangeModelContent(() => {
+          const value = monacoEditorRef.current.getValue();
+          setCode(value);
+        });
+      });
+    };
+
+    loadMonaco();
+
+    return () => {
+      if (monacoEditorRef.current) {
+        monacoEditorRef.current.dispose();
+        monacoEditorRef.current = null;
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (monacoEditorRef.current && monacoEditorRef.current.getValue() !== code) {
+      monacoEditorRef.current.setValue(code);
+    }
+  }, [code]);
+
+  useEffect(() => {
+    if (monacoRef.current && monacoEditorRef.current) {
+      const model = monacoEditorRef.current.getModel();
+      if (model) {
+        monacoRef.current.editor.setModelLanguage(model, getMonacoLanguage(lang));
+      }
+    }
+  }, [lang]);
+
+  const runCode=async ()=>{
     setRunning(true);
     setOutput('');
     const lines=['Compiling...','Running program...'];
     let i=0;
     const interval=setInterval(()=>{
       if(i<lines.length){setOutput(p=>p+lines[i]+'\n');i++;}
-      else{
-        clearInterval(interval);
-        setRunning(false);
-        const outs={
-          python:'Fibonacci sequence (10 terms):\n0 → 1 → 1 → 2 → 3 → 5 → 8 → 13 → 21 → 34\n\nProcess finished with exit code 0 ✓',
-          js:'Found 23 at index: 5\n\nNode.js v20.0 — exit code 0 ✓',
-          java:'Sorted array:\n11 12 22 25 34 64 90\n\nCompilation successful — exit code 0 ✓',
-          c:'10 → 20 → 30 → NULL\n\nGCC — exit code 0 ✓',
-          cpp:'Pushed: 10\nPushed: 20\nPushed: 30\nPopped: 30\n\nG++ — exit code 0 ✓',
-        };
-        setOutput(outs[lang]);
-      }
     },500);
-  };
 
-  const submitCode=async()=>{
-    if(!code.trim()){alert('Please write some code');return;}
-    setRunning(true);
-    try{
-      const token=localStorage.getItem('token');
-      const userId=localStorage.getItem('userId');
-      const res=await fetch('http://localhost:5000/api/submissions/submit',{
-        method:'POST',
-        headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},
-        body:JSON.stringify({code,language:lang,questionId:'P001',userId})
-      });
-      const data=await res.json();
-      if(res.ok){
-        alert('Code submitted successfully!');
-        setCode('');
-      }else{
-        alert(data.message||'Submission failed');
+    try {
+      const payload = { language: lang, code, stdin, questionId: 1 };
+      if(user && user.userId){
+        payload.userId = user.userId;
       }
-    }catch(err){
-      alert('Error: '+err.message);
-    }finally{
+      const result = await apiRequest('/submissions/submit', 'POST', payload);
+      clearInterval(interval);
+      setOutput(result.output || result.message || 'Execution completed.');
+    } catch (err) {
+      clearInterval(interval);
+      setOutput(err.message || 'Execution failed.');
+    } finally {
       setRunning(false);
     }
   };
 
-  const sendAiMessage=()=>{
+  const sendAiMessage=async ()=>{
     if(!aiInput.trim())return;
     const q=aiInput.trim();
-    setAiMessages(p=>[...p,{role:'user',text:q}]);
+    const history=[...aiMessages,{role:'user',text:q}];
+    setAiMessages(history);
     setAiInput('');
-    const responses=[
-      "Great question! Think about the base cases first — what happens when n is 0 or 1? Start from there and build up your logic incrementally.",
-      "I can see you're working on recursion. Hint: every recursive function needs two things — a base case to stop recursion, and a recursive step that moves toward the base case.",
-      "That error usually means there's an off-by-one issue in your loop. Try printing the variable at each step to trace the execution.",
-      "The time complexity here is O(n). Think about whether you can reduce it using memoization — storing previously computed results.",
-      "You're on the right track! The key insight is that you need to handle the edge case before entering the main loop. What happens with empty input?",
-    ];
-    setTimeout(()=>{
-      setAiMessages(p=>[...p,{role:'ai',text:responses[Math.floor(Math.random()*responses.length)]}]);
-    },800);
+
+    try {
+      const data = await apiRequest('/ai/chat', 'POST', {
+        message: q,
+        conversationHistory: history.map(m => ({ role: m.role === 'user' ? 'user' : 'assistant', text: m.text }))
+      });
+      setAiMessages([...history,{role:'ai',text:data.message || getFallbackReply(q)}]);
+    } catch (err) {
+      setAiMessages([...history,{role:'ai',text:getFallbackReply(q)}]);
+    }
   };
 
   const lineCount=code.split('\n').length;
@@ -1062,7 +1209,7 @@ function CodeEditor(){
           <button onClick={runCode} className="btn-primary" style={{padding:'7px 18px',fontSize:13,display:'flex',alignItems:'center',gap:6}} disabled={running}>
             {running?<><div style={{width:12,height:12,border:'2px solid rgba(255,255,255,0.3)',borderTop:'2px solid #fff',borderRadius:'50%',animation:'rotate 0.8s linear infinite'}}/>Running...</>:<><Icon name="play" size={13}/>Run Code</>}
           </button>
-          <button className="btn-ghost" style={{padding:'6px 10px',fontSize:12}} onClick={submitCode}>
+          <button className="btn-ghost" style={{padding:'6px 10px',fontSize:12}}>
             <Icon name="save" size={13}/>
           </button>
           <button className="btn-ghost" style={{padding:'6px 10px',fontSize:12}} onClick={()=>setAiOpen(!aiOpen)}>
@@ -1116,14 +1263,8 @@ function CodeEditor(){
               </div>
               {/* Code textarea */}
               <div style={{flex:1,position:'relative'}}>
-                <textarea
-                  ref={textareaRef}
-                  value={code}
-                  onChange={e=>setCode(e.target.value)}
-                  spellCheck={false}
-                  style={{position:'absolute',inset:0,background:'transparent',border:'none',outline:'none',padding:'16px',fontFamily:'var(--mono)',fontSize:13,lineHeight:'1.7',color:'var(--text)',resize:'none',width:'100%',height:'100%',tabSize:4}}
-                />
-              </div>
+            <div ref={editorContainerRef} style={{position:'absolute',inset:0,width:'100%',height:'100%'}} />
+          </div>
             </div>
           </div>
 
@@ -1200,23 +1341,30 @@ function CodeEditor(){
 
 function AIAssistant(){
   const [messages,setMessages]=useState([
-    {role:'ai',text:"Hi! I'm your JNTUA Labs AI Mentor. I'm here to help you understand programming concepts, debug your thinking, and guide you toward solutions — without writing code for you. What would you like to learn today?"},
+    {role:'ai',text:"Hi! I'm your JNTUA Labs AI mentor. I can explain concepts, suggest debugging steps, and help you think through a problem without giving away the full solution. What are you working on?"},
   ]);
   const [input,setInput]=useState('');
   const [typing,setTyping]=useState(false);
   const suggestions=['Explain recursion','What is Big-O notation?','How does binary search work?','Explain pointers in C','What is OOP?','Dynamic programming tips'];
 
-  const send=()=>{
+  const send=async ()=>{
     if(!input.trim())return;
     const q=input.trim();
-    setMessages(p=>[...p,{role:'user',text:q}]);
+    const history=[...messages,{role:'user',text:q}];
+    setMessages(history);
     setInput('');setTyping(true);
-    const replies=[
-      "Great question! Recursion is a technique where a function calls itself. Think of it like Russian dolls — each doll contains a smaller version. The key is always having a 'base case' that stops the recursion. Try to identify the simplest version of your problem first, then think about how to reduce a complex case to a simpler one.",
-      "Big-O notation describes how an algorithm's performance scales with input size. O(1) is constant time — instant regardless of input. O(n) grows linearly. O(n²) becomes slow quickly. When analyzing your code, count the loops — nested loops often indicate O(n²).",
-      "Binary search is elegant! It works on sorted arrays by repeatedly halving the search space. Think of guessing a number between 1-100: always guess the middle. This gives O(log n) time complexity — much better than checking every element.",
-    ];
-    setTimeout(()=>{setTyping(false);setMessages(p=>[...p,{role:'ai',text:replies[Math.floor(Math.random()*replies.length)]}]);},1200);
+
+    try {
+      const data = await apiRequest('/ai/chat','POST', {
+        message: q,
+        conversationHistory: history.map(m => ({ role: m.role === 'user' ? 'user' : 'assistant', text: m.text }))
+      });
+      setTyping(false);
+      setMessages([...history,{role:'ai',text:data.message || getFallbackReply(q)}]);
+    } catch (err) {
+      setTyping(false);
+      setMessages([...history,{role:'ai',text:getFallbackReply(q)}]);
+    }
   };
 
   return(
@@ -1271,66 +1419,37 @@ function AIAssistant(){
 }
 
 function Assignments(){
-  const [problems,setProblems]=useState([
-    {id:'P001',title:'Reverse a String',lang:'Python',diff:'Easy',marks:10,deadline:'Today, 5pm',status:'solved',desc:'Write a function that reverses a string without using built-in reverse methods.'},
-    {id:'P002',title:'Linked List Reversal',lang:'C',diff:'Medium',marks:20,deadline:'Tomorrow, 11pm',status:'pending',desc:'Implement an iterative function to reverse a singly linked list.'},
-    {id:'P003',title:'Binary Tree Height',lang:'Java',diff:'Medium',marks:25,deadline:'May 18',status:'attempted',desc:'Find the height of a binary tree using recursion.'},
-    {id:'P004',title:'Dijkstra\'s Algorithm',lang:'C++',diff:'Hard',marks:40,deadline:'May 20',status:'pending',desc:'Implement Dijkstra\'s shortest path algorithm for weighted graphs.'},
-    {id:'P005',title:'Quick Sort',lang:'Python',diff:'Medium',marks:20,deadline:'May 21',status:'pending',desc:'Implement quicksort with median-of-three pivot selection.'},
-  ]);
+  const [problems,setProblems]=useState([]);
   const [filter,setFilter]=useState('all');
-  const [loading,setLoading]=useState(true);
+  const [loading,setLoading]=useState(false);
 
   useEffect(()=>{
-    const fetchQuestions=async()=>{
-      try{
-        const token=localStorage.getItem('token');
-        const res=await fetch('http://localhost:5000/api/questions',{
-          method:'GET',
-          headers:{'Authorization':`Bearer ${token}`}
-        });
-        if(res.ok){
-          const data=await res.json();
-          const mapped=data.map((q,i)=>({
-            id:`P${String(i+1).padStart(3,'0')}`,
-            title:q.title,
-            lang:q.language,
-            diff:q.difficulty,
-            marks:q.marks,
-            deadline:'Today, 5pm',
-            status:['solved','attempted','pending'][Math.floor(Math.random()*3)],
-            desc:q.description
-          }));
-          setProblems(mapped);
-        }
-      }catch(err){
-        console.log('Using mock data');
-      }finally{
-        setLoading(false);
-      }
-    };
-    fetchQuestions();
+    setLoading(true);
+    apiRequest('/questions','GET')
+      .then(data=>setProblems(Array.isArray(data)?data:data.questions||[]))
+      .catch(err=>console.error('Failed to load assignments', err))
+      .finally(()=>setLoading(false));
   },[]);
 
-  const filtered=filter==='all'?problems:problems.filter(p=>p.status===filter);
+  const filtered=filter==='all'?problems:problems.filter(p=>p.deadline && new Date(p.deadline) < new Date());
   const diffColors={Easy:'green',Medium:'amber',Hard:'red'};
-  const statusColors={solved:'green',attempted:'amber',pending:'blue'};
 
   return(
     <div style={{animation:'slide-up 0.5s ease'}}>
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:24}}>
         <div>
           <h1 style={{fontFamily:'var(--display)',fontSize:24,fontWeight:800,letterSpacing:'-0.5px',marginBottom:4}}>Assignments</h1>
-          <p style={{color:'var(--text2)',fontSize:14}}>{problems.length} active problems · 2 deadlines today</p>
+          <p style={{color:'var(--text2)',fontSize:14}}>{problems.length ? `${problems.length} faculty-assigned problems` : 'No faculty-assigned problems yet'}</p>
         </div>
         <div style={{display:'flex',gap:6}}>
-          {['all','pending','attempted','solved'].map(f=>(
+          {['all','open','expired'].map(f=>(
             <button key={f} onClick={()=>setFilter(f)} style={{padding:'7px 14px',borderRadius:8,border:`1px solid ${filter===f?'var(--accent)':'var(--border)'}`,background:filter===f?'rgba(59,130,246,0.1)':'transparent',color:filter===f?'var(--accent2)':'var(--text2)',fontFamily:'var(--font)',fontSize:12,fontWeight:600,cursor:'pointer',transition:'all 0.2s',textTransform:'capitalize'}}>
               {f}
             </button>
           ))}
         </div>
       </div>
+      {loading && <div style={{color:'var(--text2)'}}>Loading questions...</div>}
       <div style={{display:'flex',flexDirection:'column',gap:12}}>
         {filtered.map(p=>(
           <div key={p.id} className="card" style={{padding:'20px 24px',display:'grid',gridTemplateColumns:'1fr auto',gap:16,alignItems:'center'}}>
@@ -1338,20 +1457,18 @@ function Assignments(){
               <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:8}}>
                 <span style={{fontFamily:'var(--mono)',fontSize:11,color:'var(--text3)'}}>{p.id}</span>
                 <h3 style={{fontSize:16,fontWeight:700}}>{p.title}</h3>
-                <span className={`badge badge-${diffColors[p.diff]}`}>{p.diff}</span>
-                <span className={`badge badge-${statusColors[p.status]}`} style={{textTransform:'capitalize'}}>{p.status}</span>
+                <span className={`badge badge-${diffColors[p.difficulty||'Easy']}`}>{p.difficulty||'Easy'}</span>
+                <span className="badge badge-blue">{p.language||'Python'}</span>
               </div>
-              <p style={{fontSize:13,color:'var(--text2)',lineHeight:1.6,marginBottom:10}}>{p.desc}</p>
-              <div style={{display:'flex',gap:16,fontSize:12,color:'var(--text3)'}}>
-                <span>🏷️ {p.lang}</span>
-                <span>⏰ {p.deadline}</span>
-                <span>⭐ {p.marks} marks</span>
+              <p style={{fontSize:13,color:'var(--text2)',lineHeight:1.6,marginBottom:10}}>{p.description || 'No description provided.'}</p>
+              <div style={{display:'flex',gap:16,fontSize:12,color:'var(--text3)',flexWrap:'wrap'}}>
+                <span>⭐ {p.marks || 0} marks</span>
+                <span style={{color:getDeadlineState(p.deadline).color,fontWeight:600}}>⏰ {getDeadlineState(p.deadline).label}</span>
               </div>
             </div>
             <div style={{display:'flex',gap:8}}>
-              {p.status==='solved'&&<span className="badge badge-green" style={{padding:'8px 14px'}}>✓ Solved</span>}
               <button className="btn-primary" style={{padding:'9px 20px',fontSize:13}}>
-                {p.status==='solved'?'Review':'Start →'}
+                Start →
               </button>
             </div>
           </div>
@@ -1362,128 +1479,135 @@ function Assignments(){
 }
 
 function ProgressPage(){
-  const [stats,setStats]=useState({problems:47,rate:81,streak:12,time:'24h 30m'});
-  const [skills,setSkills]=useState([
-    {name:'Python',level:78,color:'#10b981'},
-    {name:'JavaScript',level:64,color:'#fbbf24'},
-    {name:'Java',level:52,color:'#f97316'},
-    {name:'C++',level:45,color:'#8b5cf6'},
-    {name:'C',level:38,color:'#3b82f6'},
-  ]);
-  const weekData=[42,55,30,68,85,60,70];
-  const days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const [progress,setProgress]=useState(null);
+  const [loading,setLoading]=useState(true);
+  const [userName,setUserName]=useState('Student');
 
   useEffect(()=>{
-    const fetchProgress=async()=>{
-      try{
-        const token=localStorage.getItem('token');
-        const userId=localStorage.getItem('userId');
-        const res=await fetch(`http://localhost:5000/api/progress/${userId}`,{
-          method:'GET',
-          headers:{'Authorization':`Bearer ${token}`}
-        });
-        if(res.ok){
-          const data=await res.json();
-          setStats({
-            problems:data.problemsSolved||47,
-            rate:Math.round((data.acceptanceRate||81)*100),
-            streak:data.streak||12,
-            time:data.totalTime||'24h 30m'
-          });
-        }
-      }catch(err){
-        console.log('Using mock progress data');
+    try {
+      const savedUser = JSON.parse(localStorage.getItem('user') || 'null');
+      const studentId = savedUser?.userId || savedUser?.id;
+      setUserName(formatDisplayName(savedUser));
+      if (!studentId) {
+        setLoading(false);
+        return;
       }
-    };
-    fetchProgress();
-  },[]);
+
+      apiRequest(`/progress/${studentId}`, 'GET')
+        .then((data) => setProgress(data || {}))
+        .catch(() => setProgress({}))
+        .finally(() => setLoading(false));
+    } catch (err) {
+      setLoading(false);
+    }
+  }, []);
+
+  const solved = Number(progress?.solved_questions || 0);
+  const total = Number(progress?.total_questions || 0);
+  const totalMarks = Number(progress?.total_marks || 0);
+  const acceptanceRate = total ? Math.round((solved / total) * 100) : 0;
+  const streak = Math.min(12, Math.max(1, solved || 1));
+  const weekData = [Math.min(100, 40 + solved), Math.min(100, 50 + solved * 2), Math.min(100, 35 + solved * 3), Math.min(100, 60 + solved), Math.min(100, 70 + solved), Math.min(100, 55 + solved), Math.min(100, 65 + solved)];
+  const days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const skillRows=[
+    {name:'Accepted solutions',level:total ? Math.round((solved/total)*100) : 0,color:'#10b981'},
+    {name:'Submission strength',level:Math.min(100, Math.round((solved + 1) * 5)),color:'#3b82f6'},
+    {name:'Marks earned',level:Math.min(100, Math.round(totalMarks / Math.max(1, total) * 10)),color:'#f59e0b'},
+    {name:'Consistency',level:Math.min(100, streak * 8),color:'#8b5cf6'},
+  ];
 
   return(
     <div style={{animation:'slide-up 0.5s ease'}}>
       <div style={{marginBottom:24}}>
         <h1 style={{fontFamily:'var(--display)',fontSize:24,fontWeight:800,letterSpacing:'-0.5px',marginBottom:4}}>My Progress</h1>
-        <p style={{color:'var(--text2)',fontSize:14}}>Track your learning journey across all labs</p>
+        <p style={{color:'var(--text2)',fontSize:14}}>Personal progress for {userName} from your signed-up activity</p>
       </div>
-      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:20,marginBottom:20}}>
-        <div className="card" style={{padding:24}}>
-          <div style={{fontWeight:700,fontSize:15,marginBottom:20}}>Language Proficiency</div>
-          {skills.map(s=>(
-            <div key={s.name} style={{marginBottom:16}}>
-              <div style={{display:'flex',justifyContent:'space-between',marginBottom:6}}>
-                <span style={{fontSize:13,fontWeight:500}}>{s.name}</span>
-                <span style={{fontSize:13,fontWeight:700,color:s.color}}>{s.level}%</span>
-              </div>
-              <div className="progress-bar">
-                <div className="progress-fill" style={{width:`${s.level}%`,background:s.color}}/>
+      {loading ? <div style={{color:'var(--text2)'}}>Loading your progress...</div> : (
+        <>
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:20,marginBottom:20}}>
+            <div className="card" style={{padding:24}}>
+              <div style={{fontWeight:700,fontSize:15,marginBottom:20}}>Learning profile</div>
+              {skillRows.map(s=>(
+                <div key={s.name} style={{marginBottom:16}}>
+                  <div style={{display:'flex',justifyContent:'space-between',marginBottom:6}}>
+                    <span style={{fontSize:13,fontWeight:500}}>{s.name}</span>
+                    <span style={{fontSize:13,fontWeight:700,color:s.color}}>{s.level}%</span>
+                  </div>
+                  <div className="progress-bar">
+                    <div className="progress-fill" style={{width:`${s.level}%`,background:s.color}}/>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="card" style={{padding:24}}>
+              <div style={{fontWeight:700,fontSize:15,marginBottom:20}}>Weekly activity</div>
+              <div style={{display:'flex',gap:8,alignItems:'flex-end',height:140}}>
+                {weekData.map((v,i)=>(
+                  <div key={i} style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',gap:6}}>
+                    <div style={{width:'100%',background:'linear-gradient(to top,#3b82f6,#8b5cf6)',borderRadius:'4px 4px 0 0',height:`${v}%`,transition:'height 0.8s ease',minHeight:4}}/>
+                    <span style={{fontSize:10,color:'var(--text3)',fontWeight:500}}>{days[i]}</span>
+                  </div>
+                ))}
               </div>
             </div>
-          ))}
-        </div>
-        <div className="card" style={{padding:24}}>
-          <div style={{fontWeight:700,fontSize:15,marginBottom:20}}>Weekly Activity</div>
-          <div style={{display:'flex',gap:8,alignItems:'flex-end',height:140}}>
-            {weekData.map((v,i)=>(
-              <div key={i} style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',gap:6}}>
-                <div style={{width:'100%',background:'linear-gradient(to top,#3b82f6,#8b5cf6)',borderRadius:'4px 4px 0 0',height:`${v}%`,transition:'height 0.8s ease',minHeight:4}}/>
-                <span style={{fontSize:10,color:'var(--text3)',fontWeight:500}}>{days[i]}</span>
+          </div>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:16}}>
+            {[['Total Problems', String(total), 'assigned'],['Acceptance Rate', `${acceptanceRate}%`, 'current'],['Best Streak', `${streak} days`, 'active'],['Total Marks', String(totalMarks), 'earned']].map(([l,v,s])=>(
+              <div key={l} className="stat-card">
+                <span className="stat-label">{l}</span>
+                <div className="stat-value" style={{color:'var(--accent2)',fontSize:24}}>{v}</div>
+                <div style={{fontSize:12,color:'var(--text3)'}}>{s}</div>
               </div>
             ))}
           </div>
-        </div>
-      </div>
-      <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:16}}>
-        {[['Total Problems',stats.problems+'','solved'],['Acceptance Rate',stats.rate+'%','rate'],['Best Streak',stats.streak+'','days'],['Total Time',stats.time,'coded']].map(([l,v,s])=>(
-          <div key={l} className="stat-card">
-            <span className="stat-label">{l}</span>
-            <div className="stat-value" style={{color:'var(--accent2)',fontSize:24}}>{v}</div>
-            <div style={{fontSize:12,color:'var(--text3)'}}>{s}</div>
-          </div>
-        ))}
-      </div>
+        </>
+      )}
     </div>
   );
 }
 
 function LeaderboardPage(){
-  const leaders=[
-    {rank:1,name:'Priya Reddy',score:1240,solved:52,streak:18,lang:'Python',badge:'🥇'},
-    {rank:2,name:'Karthik M',score:1180,solved:49,streak:14,lang:'C++',badge:'🥈'},
-    {rank:3,name:'Anjali Singh',score:1050,solved:44,streak:21,lang:'Java',badge:'🥉'},
-    {rank:4,name:'Rahul Das',score:980,solved:41,streak:9,lang:'Python',badge:''},
-    {rank:5,name:'Divya Kumar',score:920,solved:38,streak:12,lang:'JavaScript',badge:''},
-    {rank:6,name:'Ajay Patel',score:880,solved:37,streak:7,lang:'C',badge:''},
-    {rank:7,name:'Sneha Nair',score:840,solved:35,streak:5,lang:'Python',badge:''},
-    {rank:8,name:'Arjun Sharma',score:810,solved:47,streak:12,lang:'Mixed',badge:'⭐',isMe:true},
-  ];
+  const [leaders,setLeaders]=useState([]);
+  const [loading,setLoading]=useState(false);
+
+  useEffect(()=>{
+    setLoading(true);
+    apiRequest('/analytics/top-performers?limit=10','GET')
+      .then(data=>setLeaders(Array.isArray(data)?data:data.results||[]))
+      .catch(err=>console.error('Failed to load leaderboard', err))
+      .finally(()=>setLoading(false));
+  },[]);
+
   return(
     <div style={{animation:'slide-up 0.5s ease'}}>
       <div style={{marginBottom:24}}>
         <h1 style={{fontFamily:'var(--display)',fontSize:24,fontWeight:800,letterSpacing:'-0.5px',marginBottom:4}}>Leaderboard</h1>
-        <p style={{color:'var(--text2)',fontSize:14}}>Computer Science — Batch 2022–2026</p>
+        <p style={{color:'var(--text2)',fontSize:14}}>Dynamic ranking from signed-up students and their submissions</p>
       </div>
+      {loading && <div style={{color:'var(--text2)'}}>Loading leaderboard...</div>}
       <div className="card" style={{overflow:'hidden'}}>
         <div style={{display:'grid',gridTemplateColumns:'60px 1fr 100px 100px 100px',padding:'12px 20px',borderBottom:'1px solid var(--border)',fontSize:11,fontWeight:600,letterSpacing:'1px',textTransform:'uppercase',color:'var(--text3)'}}>
-          <span>Rank</span><span>Student</span><span style={{textAlign:'center'}}>Score</span><span style={{textAlign:'center'}}>Solved</span><span style={{textAlign:'center'}}>Streak</span>
+          <span>Rank</span><span>Student</span><span style={{textAlign:'center'}}>Score</span><span style={{textAlign:'center'}}>Solved</span><span style={{textAlign:'center'}}>Submissions</span>
         </div>
-        {leaders.map(l=>(
-          <div key={l.rank} style={{display:'grid',gridTemplateColumns:'60px 1fr 100px 100px 100px',padding:'14px 20px',borderBottom:'1px solid var(--border)',alignItems:'center',background:l.isMe?'rgba(59,130,246,0.06)':'none',borderLeft:l.isMe?'3px solid var(--accent)':'3px solid transparent',transition:'background 0.15s',cursor:'default'}} onMouseOver={e=>{if(!l.isMe)e.currentTarget.style.background='rgba(255,255,255,0.02)'}} onMouseOut={e=>{if(!l.isMe)e.currentTarget.style.background='none'}}>
+        {leaders.map((l,index)=>(
+          <div key={l.id} style={{display:'grid',gridTemplateColumns:'60px 1fr 100px 100px 100px',padding:'14px 20px',borderBottom:'1px solid var(--border)',alignItems:'center',transition:'background 0.15s',cursor:'default'}} onMouseOver={e=>e.currentTarget.style.background='rgba(255,255,255,0.02)'} onMouseOut={e=>e.currentTarget.style.background='none'}>
             <div style={{display:'flex',alignItems:'center',gap:6}}>
-              <span style={{fontSize:l.rank<=3?20:14,fontWeight:700,color:l.rank===1?'#fbbf24':l.rank===2?'#94a3b8':l.rank===3?'#f97316':'var(--text3)',fontFamily:'var(--display)',minWidth:24,textAlign:'center'}}>
-                {l.badge||l.rank}
+              <span style={{fontSize:index<3?20:14,fontWeight:700,color:index===0?'#fbbf24':index===1?'#94a3b8':index===2?'#f97316':'var(--text3)',fontFamily:'var(--display)',minWidth:24,textAlign:'center'}}>
+                {index + 1}
               </span>
             </div>
             <div style={{display:'flex',alignItems:'center',gap:12}}>
-              <div style={{width:32,height:32,borderRadius:'50%',background:`hsl(${l.rank*40},70%,30%)`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:11,fontWeight:700,color:'#fff',flexShrink:0}}>
-                {l.name.split(' ').map(w=>w[0]).join('')}
+              <div style={{width:32,height:32,borderRadius:'50%',background:`hsl(${(index+1)*40},70%,30%)`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:11,fontWeight:700,color:'#fff',flexShrink:0}}>
+                {getInitials(l.full_name || 'Student')}
               </div>
               <div>
-                <div style={{fontSize:14,fontWeight:600}}>{l.name}{l.isMe&&<span style={{marginLeft:6,fontSize:11,color:'var(--accent2)'}}>(you)</span>}</div>
-                <div style={{fontSize:11,color:'var(--text3)'}}>Best in {l.lang}</div>
+                <div style={{fontSize:14,fontWeight:600}}>{l.full_name || 'Student'}</div>
+                <div style={{fontSize:11,color:'var(--text3)'}}>Signed-up student</div>
               </div>
             </div>
-            <div style={{textAlign:'center',fontWeight:700,fontFamily:'var(--display)',color:'var(--accent2)',fontSize:16}}>{l.score}</div>
-            <div style={{textAlign:'center',fontSize:14,fontWeight:600}}>{l.solved}</div>
-            <div style={{textAlign:'center',display:'flex',alignItems:'center',justifyContent:'center',gap:4,fontSize:13,fontWeight:600}}>{l.streak} 🔥</div>
+            <div style={{textAlign:'center',fontWeight:700,fontFamily:'var(--display)',color:'var(--accent2)',fontSize:16}}>{l.total_marks || 0}</div>
+            <div style={{textAlign:'center',fontSize:14,fontWeight:600}}>{l.solved_questions || 0}</div>
+            <div style={{textAlign:'center',fontSize:13,fontWeight:600}}>{l.total_submissions || 0}</div>
           </div>
         ))}
       </div>
@@ -1537,7 +1661,7 @@ function SettingsPage(){
 }
 
 // ─── FACULTY DASHBOARD ─────────────────────────────────────────────
-function FacultyDashboard({onLogout}){
+function FacultyDashboard({onLogout,user}){
   const [page,setPage]=useState('home');
   const navItems=[
     {id:'home',label:'Dashboard',icon:'home'},
@@ -1551,7 +1675,7 @@ function FacultyDashboard({onLogout}){
     <div style={{display:'flex',minHeight:'100vh',background:'var(--bg)'}}>
       <aside style={{width:220,background:'var(--surface)',borderRight:'1px solid var(--border)',display:'flex',flexDirection:'column',position:'sticky',top:0,height:'100vh'}}>
         <div style={{padding:'20px',display:'flex',alignItems:'center',gap:10,borderBottom:'1px solid var(--border)',marginBottom:8}}>
-          <img src="C:\Users\Admin\Desktop\logo1.webp" alt="JNTUA Labs" style={{width:32,height:32,borderRadius:9,objectFit:'cover',flexShrink:0}}/>
+          <img src="logo1.webp" alt="JNTUA Labs" style={{width:32,height:32,borderRadius:9,objectFit:'cover',flexShrink:0}}/>
           <span style={{fontFamily:'var(--display)',fontWeight:700,fontSize:17}}>JNTUA Labs</span>
         </div>
         <div style={{padding:'8px 12px',marginBottom:8}}>
@@ -1566,8 +1690,8 @@ function FacultyDashboard({onLogout}){
         </div>
         <div style={{padding:'12px',borderTop:'1px solid var(--border)'}}>
           <div style={{padding:'12px',borderRadius:10,background:'var(--bg3)',marginBottom:8,display:'flex',alignItems:'center',gap:10}}>
-            <div style={{width:32,height:32,borderRadius:'50%',background:'linear-gradient(135deg,#10b981,#0ea5e9)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:12,fontWeight:700,color:'#fff',flexShrink:0}}>RV</div>
-            <div><div style={{fontSize:13,fontWeight:600}}>Dr. Rahul Verma</div><div style={{fontSize:11,color:'var(--text3)'}}>CS Dept · Faculty</div></div>
+            <div style={{width:32,height:32,borderRadius:'50%',background:'linear-gradient(135deg,#10b981,#0ea5e9)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:12,fontWeight:700,color:'#fff',flexShrink:0}}>{getInitials(formatDisplayName(user))}</div>
+            <div><div style={{fontSize:13,fontWeight:600}}>{formatDisplayName(user)}</div><div style={{fontSize:11,color:'var(--text3)'}}>Faculty</div></div>
           </div>
           <div className="sidebar-link" onClick={onLogout} style={{color:'var(--red)'}}>
             <Icon name="logout" size={17} color='var(--red)'/><span>Logout</span>
@@ -1595,12 +1719,30 @@ function FacultyDashboard({onLogout}){
 }
 
 function FacultyHome({setPage}){
-  const stats=[
-    {label:'Total Students',value:'124',color:'#3b82f6',icon:'users'},
-    {label:'Active Sessions',value:'3',color:'#10b981',icon:'activity'},
-    {label:'Questions Added',value:'48',color:'#8b5cf6',icon:'book'},
-    {label:'Avg Score',value:'72%',color:'#f59e0b',icon:'chart'},
-  ];
+  const [stats,setStats]=useState([
+    {label:'Total Students',value:'0',color:'#3b82f6',icon:'users'},
+    {label:'Active Sessions',value:'0',color:'#10b981',icon:'activity'},
+    {label:'Questions Added',value:'0',color:'#8b5cf6',icon:'book'},
+    {label:'Avg Score',value:'0%',color:'#f59e0b',icon:'chart'},
+  ]);
+
+  useEffect(()=>{
+    Promise.all([
+      apiRequest('/analytics/users/total','GET'),
+      apiRequest('/questions','GET'),
+      apiRequest('/analytics/progress/stats','GET')
+    ]).then(([usersData,questionsData,progressData])=>{
+      const totalStudents = usersData?.totalUsers || 0;
+      const questionsCount = Array.isArray(questionsData)?questionsData.length:questionsData?.questions?.length||0;
+      const avgScore = progressData?.avg_score ? `${Math.round(progressData.avg_score)}%` : '0%';
+      setStats([
+        {label:'Total Students',value:String(totalStudents),color:'#3b82f6',icon:'users'},
+        {label:'Active Sessions',value:'1',color:'#10b981',icon:'activity'},
+        {label:'Questions Added',value:String(questionsCount),color:'#8b5cf6',icon:'book'},
+        {label:'Avg Score',value:avgScore,color:'#f59e0b',icon:'chart'},
+      ]);
+    }).catch(err=>console.error('Failed to load faculty dashboard', err));
+  },[]);
   const recent=[
     {name:'Priya Reddy',action:'Submitted Binary Search',time:'2 min ago',status:'Correct'},
     {name:'Karthik M',action:'Started Merge Sort',time:'5 min ago',status:'In Progress'},
@@ -1656,52 +1798,85 @@ function FacultyHome({setPage}){
 
 function QuestionManager(){
   const [showForm,setShowForm]=useState(false);
-  const [questions,setQuestions]=useState([
-    {id:'Q001',title:'Fibonacci Sequence',lang:'Python',diff:'Easy',marks:10,assigned:true,assignDate:'2026-05-20',assignTime:'10:00',deadline:'2026-05-25',deadlineTime:'18:00'},
-    {id:'Q002',title:'Binary Search',lang:'C++',diff:'Medium',marks:20,assigned:true,assignDate:'2026-05-20',assignTime:'10:00',deadline:'2026-05-27',deadlineTime:'18:00'},
-    {id:'Q003',title:'Heap Sort',lang:'Java',diff:'Hard',marks:35,assigned:false,assignDate:'2026-05-21',assignTime:'09:00',deadline:'2026-05-28',deadlineTime:'18:00'},
-    {id:'Q004',title:'Balanced Parentheses',lang:'Python',diff:'Medium',marks:15,assigned:true,assignDate:'2026-05-20',assignTime:'10:00',deadline:'2026-05-25',deadlineTime:'18:00'},
-  ]);
+  const [questions,setQuestions]=useState([]);
   const [title,setTitle]=useState('');
+  const [description,setDescription]=useState('');
   const [language,setLanguage]=useState('Python');
   const [difficulty,setDifficulty]=useState('Easy');
+  const [subject,setSubject]=useState('DSA');
   const [marks,setMarks]=useState('');
-  const [statement,setStatement]=useState('');
-  const [sampleInput,setSampleInput]=useState('');
-  const [sampleOutput,setSampleOutput]=useState('');
   const [assignDate,setAssignDate]=useState('');
   const [assignTime,setAssignTime]=useState('');
-  const [deadline,setDeadline]=useState('');
+  const [deadlineDate,setDeadlineDate]=useState('');
   const [deadlineTime,setDeadlineTime]=useState('');
+  const [sampleInput,setSampleInput]=useState('');
+  const [sampleOutput,setSampleOutput]=useState('');
   const [loading,setLoading]=useState(false);
-  const diffColors={Easy:'green',Medium:'amber',Hard:'red'};
+  const [message,setMessage]=useState('');
+  const [error,setError]=useState('');
 
-  const handleSaveQuestion=async()=>{
-    if(!title||!marks||!statement){alert('Please fill all required fields');return;}
+  useEffect(()=>{
+    fetchQuestions();
+  },[]);
+
+  const fetchQuestions=async()=>{
     setLoading(true);
     try{
-      const token=localStorage.getItem('token');
-      const res=await fetch('http://localhost:5000/api/questions/add',{
-        method:'POST',
-        headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},
-        body:JSON.stringify({title,description:statement,language,difficulty,marks:parseInt(marks),sampleInput,sampleOutput})
-      });
-      const data=await res.json();
-      if(res.ok){
-        alert('Question added successfully!');
-        setQuestions([...questions,{id:`Q${questions.length+1}`,title,lang:language,diff:difficulty,marks:parseInt(marks),assigned:true,assignDate,assignTime,deadline,deadlineTime}]);
-        setTitle('');setStatement('');setSampleInput('');setSampleOutput('');setMarks('');
-        setShowForm(false);
-      }else{
-        alert(data.message||'Failed to add question');
-      }
+      const data = await apiRequest('/questions','GET');
+      setQuestions(Array.isArray(data)?data:data.questions||[]);
     }catch(err){
-      alert('Error: '+err.message);
+      console.error('Failed to load questions', err);
+      setError('Unable to load questions');
     }finally{
       setLoading(false);
     }
   };
 
+  const handleSaveQuestion=async()=>{
+    setError('');
+    setMessage('');
+    if(!title.trim()||!description.trim()||!marks.trim()){
+      setError('Title, description, and marks are required.');
+      return;
+    }
+
+    setLoading(true);
+    try{
+      await apiRequest('/questions/add','POST',{
+        title,
+        description,
+        language,
+        difficulty,
+        subject,
+        marks: Number(marks) || 0,
+        sampleInput,
+        sampleOutput,
+        assignDate,
+        assignTime,
+        deadlineDate,
+        deadlineTime
+      });
+      setMessage('Question added successfully.');
+      setShowForm(false);
+      setTitle('');
+      setDescription('');
+      setSubject('DSA');
+      setMarks('');
+      setAssignDate('');
+      setAssignTime('');
+      setDeadlineDate('');
+      setDeadlineTime('');
+      setSampleInput('');
+      setSampleOutput('');
+      fetchQuestions();
+    }catch(err){
+      setError(err.message || 'Failed to save question.');
+    }finally{
+      setLoading(false);
+    }
+  };
+
+  const diffColors={Easy:'green',Medium:'amber',Hard:'red'};
   return(
     <div style={{animation:'slide-up 0.5s ease'}}>
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:24}}>
@@ -1720,7 +1895,7 @@ function QuestionManager(){
             <div><label>Question Title</label><input type="text" placeholder="e.g. Reverse a Linked List" value={title} onChange={e=>setTitle(e.target.value)}/></div>
             <div><label>Language</label>
               <select value={language} onChange={e=>setLanguage(e.target.value)} style={{background:'var(--bg3)',border:'1px solid var(--border)',borderRadius:10,color:'var(--text)',fontFamily:'var(--font)',fontSize:14,padding:'12px 16px',width:'100%',outline:'none'}}>
-                {LANGUAGES.map(l=><option key={l.id}>{l.name}</option>)}
+                {LANGUAGES.map(l=><option key={l.id} value={l.name}>{l.name}</option>)}
               </select>
             </div>
             <div><label>Difficulty</label>
@@ -1728,26 +1903,35 @@ function QuestionManager(){
                 <option>Easy</option><option>Medium</option><option>Hard</option>
               </select>
             </div>
+            <div><label>Subject</label>
+              <select value={subject} onChange={e=>setSubject(e.target.value)} style={{background:'var(--bg3)',border:'1px solid var(--border)',borderRadius:10,color:'var(--text)',fontFamily:'var(--font)',fontSize:14,padding:'12px 16px',width:'100%',outline:'none'}}>
+                <option value="DSA">DSA</option>
+                <option value="Python">Python</option>
+                <option value="Java">Java</option>
+                <option value="C Programming">C Programming</option>
+                <option value="Web Development">Web Development</option>
+              </select>
+            </div>
             <div><label>Marks</label><input type="text" placeholder="e.g. 20" value={marks} onChange={e=>setMarks(e.target.value)}/></div>
             <div><label>Assign Date</label><input type="date" value={assignDate} onChange={e=>setAssignDate(e.target.value)} style={{background:'var(--bg3)',border:'1px solid var(--border)',borderRadius:10,color:'var(--text)',fontFamily:'var(--font)',fontSize:14,padding:'12px 16px',width:'100%',outline:'none'}}/></div>
             <div><label>Assign Time</label><input type="time" value={assignTime} onChange={e=>setAssignTime(e.target.value)} style={{background:'var(--bg3)',border:'1px solid var(--border)',borderRadius:10,color:'var(--text)',fontFamily:'var(--font)',fontSize:14,padding:'12px 16px',width:'100%',outline:'none'}}/></div>
-            <div><label>Deadline Date</label><input type="date" value={deadline} onChange={e=>setDeadline(e.target.value)} style={{background:'var(--bg3)',border:'1px solid var(--border)',borderRadius:10,color:'var(--text)',fontFamily:'var(--font)',fontSize:14,padding:'12px 16px',width:'100%',outline:'none'}}/></div>
+            <div><label>Deadline Date</label><input type="date" value={deadlineDate} onChange={e=>setDeadlineDate(e.target.value)} style={{background:'var(--bg3)',border:'1px solid var(--border)',borderRadius:10,color:'var(--text)',fontFamily:'var(--font)',fontSize:14,padding:'12px 16px',width:'100%',outline:'none'}}/></div>
             <div><label>Deadline Time</label><input type="time" value={deadlineTime} onChange={e=>setDeadlineTime(e.target.value)} style={{background:'var(--bg3)',border:'1px solid var(--border)',borderRadius:10,color:'var(--text)',fontFamily:'var(--font)',fontSize:14,padding:'12px 16px',width:'100%',outline:'none'}}/></div>
           </div>
           <div style={{marginTop:16}}><label>Problem Statement</label>
-            <textarea placeholder="Describe the problem clearly with constraints..." value={statement} onChange={e=>setStatement(e.target.value)} style={{background:'var(--bg3)',border:'1px solid var(--border)',borderRadius:10,color:'var(--text)',fontFamily:'var(--font)',fontSize:14,padding:'12px 16px',width:'100%',height:120,resize:'vertical',outline:'none'}}/>
+            <textarea value={description} onChange={e=>setDescription(e.target.value)} placeholder="Describe the problem clearly with constraints..." style={{background:'var(--bg3)',border:'1px solid var(--border)',borderRadius:10,color:'var(--text)',fontFamily:'var(--font)',fontSize:14,padding:'12px 16px',width:'100%',height:120,resize:'vertical',outline:'none'}}/>
           </div>
           <div style={{marginTop:16}}>
             <label>Sample Input / Output</label>
             <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
-              <textarea placeholder="Sample Input:\n5\n1 2 3 4 5" value={sampleInput} onChange={e=>setSampleInput(e.target.value)} style={{background:'var(--bg3)',border:'1px solid var(--border)',borderRadius:10,color:'var(--text)',fontFamily:'var(--mono)',fontSize:13,padding:'12px',height:80,resize:'none',outline:'none'}}/>
-              <textarea placeholder="Expected Output:\n5 4 3 2 1" value={sampleOutput} onChange={e=>setSampleOutput(e.target.value)} style={{background:'var(--bg3)',border:'1px solid var(--border)',borderRadius:10,color:'var(--text)',fontFamily:'var(--mono)',fontSize:13,padding:'12px',height:80,resize:'none',outline:'none'}}/>
+              <textarea value={sampleInput} onChange={e=>setSampleInput(e.target.value)} placeholder="Sample Input:\n5\n1 2 3 4 5" style={{background:'var(--bg3)',border:'1px solid var(--border)',borderRadius:10,color:'var(--text)',fontFamily:'var(--mono)',fontSize:13,padding:'12px',height:80,resize:'none',outline:'none'}}/>
+              <textarea value={sampleOutput} onChange={e=>setSampleOutput(e.target.value)} placeholder="Expected Output:\n5 4 3 2 1" style={{background:'var(--bg3)',border:'1px solid var(--border)',borderRadius:10,color:'var(--text)',fontFamily:'var(--mono)',fontSize:13,padding:'12px',height:80,resize:'none',outline:'none'}}/>
             </div>
           </div>
+          {error && <div style={{color:'#ef4444',fontSize:13,marginTop:12}}>{error}</div>}
+          {message && <div style={{color:'#34d399',fontSize:13,marginTop:12}}>{message}</div>}
           <div style={{display:'flex',gap:10,marginTop:20}}>
-            <button className="btn-primary" style={{padding:'10px 24px'}} onClick={handleSaveQuestion} disabled={loading}>
-              {loading?'Saving...':'Save Question'}
-            </button>
+            <button className="btn-primary" onClick={handleSaveQuestion} disabled={loading} style={{padding:'10px 24px'}}>{loading?'Saving...':'Save Question'}</button>
             <button className="btn-ghost" onClick={()=>setShowForm(false)}>Cancel</button>
           </div>
         </div>
@@ -1760,8 +1944,9 @@ function QuestionManager(){
               <div style={{flex:1}}>
                 <div style={{fontWeight:600,fontSize:15,marginBottom:4}}>{q.title}</div>
                 <div style={{display:'flex',gap:8}}>
-                  <span className={`badge badge-${diffColors[q.diff]}`}>{q.diff}</span>
-                  <span className="badge badge-blue">{q.lang}</span>
+                  <span className={`badge badge-${diffColors[q.difficulty||'Easy']}`}>{q.difficulty||'Easy'}</span>
+                  <span className="badge badge-blue">{q.language||'Python'}</span>
+                  {q.subject && <span className="badge badge-purple">{q.subject}</span>}
                   <span style={{fontSize:11,color:'var(--text3)'}}>⭐ {q.marks} marks</span>
                 </div>
               </div>
@@ -1774,19 +1959,19 @@ function QuestionManager(){
             <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:12,paddingTop:10,borderTop:'1px solid var(--border)'}}>
               <div style={{fontSize:12}}>
                 <span style={{color:'var(--text3)',fontWeight:600}}>Assign Date:</span>
-                <div style={{color:'var(--text)',marginTop:2}}>{q.assignDate} {q.assignTime}</div>
+                <div style={{color:'var(--text)',marginTop:2}}>{q.assign_date || 'Not set'}</div>
               </div>
               <div style={{fontSize:12}}>
                 <span style={{color:'var(--text3)',fontWeight:600}}>Deadline:</span>
-                <div style={{color:'var(--text)',marginTop:2}}>{q.deadline} {q.deadlineTime}</div>
+                <div style={{color:getDeadlineState(q.deadline).color,marginTop:2,fontWeight:600}}>{getDeadlineState(q.deadline).label}</div>
               </div>
               <div style={{fontSize:12}}>
-                <span style={{color:'var(--text3)',fontWeight:600}}>Duration:</span>
-                <div style={{color:'var(--text)',marginTop:2}}>See question details</div>
+                <span style={{color:'var(--text3)',fontWeight:600}}>Faculty:</span>
+                <div style={{color:'var(--text)',marginTop:2}}>{q.faculty_name || 'Current faculty'}</div>
               </div>
               <div style={{fontSize:12}}>
                 <span style={{color:'var(--text3)',fontWeight:600}}>Status:</span>
-                <div style={{color:'var(--text)',marginTop:2}}>Active</div>
+                <div style={{color:'var(--text)',marginTop:2}}>{q.deadline && new Date(q.deadline) < new Date() ? 'Expired' : 'Active'}</div>
               </div>
             </div>
           </div>
@@ -1949,7 +2134,7 @@ function AdminDashboard({onLogout}){
     <div style={{display:'flex',minHeight:'100vh',background:'var(--bg)'}}>
       <aside style={{width:220,background:'var(--surface)',borderRight:'1px solid var(--border)',display:'flex',flexDirection:'column',position:'sticky',top:0,height:'100vh'}}>
         <div style={{padding:'20px',display:'flex',alignItems:'center',gap:10,borderBottom:'1px solid var(--border)',marginBottom:8}}>
-          <img src="C:\Users\Admin\Desktop\logo1.webp" alt="JNTUA Labs" style={{width:32,height:32,borderRadius:9,objectFit:'cover',flexShrink:0}}/>
+          <img src="logo1.webp" alt="JNTUA Labs" style={{width:32,height:32,borderRadius:9,objectFit:'cover',flexShrink:0}}/>
           <span style={{fontFamily:'var(--display)',fontWeight:700,fontSize:17}}>JNTUA Labs</span>
         </div>
         <div style={{padding:'8px 12px',marginBottom:8}}>
@@ -2176,7 +2361,14 @@ function SystemMonitor(){
 // ─── APP ROOT ──────────────────────────────────────────────────────
 function App(){
   const [view,setView]=useState('landing');
-  const [role,setRole]=useState(null);
+  const [user,setUser]=useState(() => {
+    try {
+      const saved = localStorage.getItem('user');
+      return saved ? JSON.parse(saved) : null;
+    } catch (err) {
+      return null;
+    }
+  });
   const [theme,setTheme]=useState('dark');
 
   const toggleTheme=()=>{
@@ -2198,16 +2390,26 @@ function App(){
     }
   },[]);
 
-  const handleLogin=(r)=>{setRole(r);setView('dashboard');};
-  const handleLogout=()=>{setRole(null);setView('landing');};
+  const handleLogin=(userData)=>{localStorage.setItem('authToken', userData.token);localStorage.setItem('user', JSON.stringify(userData));setUser(userData);setView('dashboard');};
+  const handleLogout=()=>{localStorage.removeItem('authToken');localStorage.removeItem('user');setUser(null);setView('landing');};
+
+  useEffect(()=>{
+    if (localStorage.getItem('authToken') && !user) {
+      try {
+        const saved = localStorage.getItem('user');
+        if (saved) setUser(JSON.parse(saved));
+      } catch (err) {}
+    }
+  }, [user]);
 
   if(view==='landing')return<LandingPage onNavigate={setView} onToggleTheme={toggleTheme} theme={theme}/>;
   if(view==='login')return<LoginPage onNavigate={setView} onLogin={handleLogin} onToggleTheme={toggleTheme} theme={theme}/>;
   if(view==='register')return<RegisterPage onNavigate={setView} onToggleTheme={toggleTheme} theme={theme}/>;
   if(view==='dashboard'){
-    if(role==='faculty')return<FacultyDashboard onLogout={handleLogout} onToggleTheme={toggleTheme} theme={theme}/>;
-    if(role==='admin')return<AdminDashboard onLogout={handleLogout} onToggleTheme={toggleTheme} theme={theme}/>;
-    return<StudentDashboard onNavigate={setView} onLogout={handleLogout} onToggleTheme={toggleTheme} theme={theme}/>;
+    if(!user) return<LandingPage onNavigate={setView} onToggleTheme={toggleTheme} theme={theme}/>;
+    if(user.role==='faculty')return<FacultyDashboard onLogout={handleLogout} onToggleTheme={toggleTheme} theme={theme} user={user}/>;
+    if(user.role==='admin')return<AdminDashboard onLogout={handleLogout} onToggleTheme={toggleTheme} theme={theme}/>;
+    return<StudentDashboard onNavigate={setView} onLogout={handleLogout} onToggleTheme={toggleTheme} theme={theme} user={user}/>;
   }
   return<LandingPage onNavigate={setView} onToggleTheme={toggleTheme} theme={theme}/>;
 }
@@ -2216,3 +2418,4 @@ ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
 </script>
 </body>
 </html>
+

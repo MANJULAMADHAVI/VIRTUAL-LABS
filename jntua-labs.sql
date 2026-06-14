@@ -15,7 +15,12 @@ title varchar(255),
 description text,
 language varchar(50),
 difficulty enum('Easy','Medium','Hard'),
+subject varchar(100),
 marks int,
+sample_input text,
+sample_output text,
+assign_date datetime,
+deadline datetime,
 foreign key(faculty_id) references users(id));
 create table submissions(
 id int primary key auto_increment,

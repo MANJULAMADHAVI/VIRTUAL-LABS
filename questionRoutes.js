@@ -1,11 +1,13 @@
 const router = require("express").Router();
 
+const authMiddleware = require("./backend/middleware/authMiddleware");
+
 const {
     createQuestion,
     getQuestions
-} = require("../controllers/questionController");
+} = require("./backend/controllers/questionController");
 
-router.post("/add", createQuestion);
+router.post("/add", authMiddleware, createQuestion);
 router.get("/", getQuestions);
 
 module.exports = router;
