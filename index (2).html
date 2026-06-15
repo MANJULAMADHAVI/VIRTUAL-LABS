@@ -159,23 +159,6 @@ label{font-size:13px;color:var(--text2);font-weight:500;display:block;margin-bot
 </head>
 <body>
 <div id="root"></div>
-<script>
-(function(){
-  const logoDataUri = 'data:image/webp;base64,UklGRrp9AABXRUJQVlA4IK59AABw8AOdASrcBYQDPpFIoUslpKOipbWYmLASCWdu/C450/ZzILLN26IvcX1Hk+ci91u+/DEHFtTf+P1yfxn0E/8b+yG7Z9Wf';
-  const applyLogo = () => {
-    document.querySelectorAll('img[src="/logo1.webp"], img[src="/assets/images/logo1.webp"]').forEach((img) => {
-      img.src = logoDataUri;
-    });
-  };
-
-  document.addEventListener('DOMContentLoaded', () => {
-    applyLogo();
-    const observer = new MutationObserver(applyLogo);
-    observer.observe(document.body, { childList: true, subtree: true });
-    setTimeout(applyLogo, 300);
-  });
-})();
-</script>
 <script type="text/babel">
 const {useState,useEffect,useRef,useCallback}=React;
 
