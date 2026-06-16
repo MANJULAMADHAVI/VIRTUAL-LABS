@@ -52,10 +52,24 @@
   --text3:#64748b;
 }
 body{background:var(--bg);color:var(--text);font-family:var(--font);overflow-x:hidden;min-height:100vh}
+img{max-width:100%;height:auto;display:block}
 ::-webkit-scrollbar{width:6px}
 ::-webkit-scrollbar-track{background:var(--bg2)}
 ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
 #root{min-height:100vh}
+
+@media (max-width: 1024px){
+  .hero-panel{padding:0 32px !important}
+}
+@media (max-width: 768px){
+  .hero-panel{padding:0 20px !important}
+  .hero-btns{flex-direction:column !important}
+  .hero-btns button{width:100% !important;justify-content:center}
+}
+@media (max-width: 480px){
+  .hero-section{padding-top:96px !important}
+  .hero-logo-wrap{width:220px !important;height:220px !important}
+}
 
 @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
 @keyframes pulse-ring{0%{transform:scale(1);opacity:0.6}100%{transform:scale(1.6);opacity:0}}
@@ -503,17 +517,17 @@ function LandingPage({onNavigate,onToggleTheme,theme}){
       </nav>
 
       {/* HERO */}
-      <section style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',position:'relative',overflow:'hidden',paddingTop:72}}>
+      <section className="hero-section" style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',position:'relative',overflow:'hidden',paddingTop:72}}>
         <div className="hero-orb" style={{width:600,height:600,background:'rgba(59,130,246,0.12)',top:'10%',left:'20%',animation:'float 8s ease-in-out infinite'}}/>
         <div className="hero-orb" style={{width:400,height:400,background:'rgba(139,92,246,0.1)',top:'30%',right:'15%',animation:'float 10s ease-in-out infinite reverse'}}/>
         <div className="hero-orb" style={{width:300,height:300,background:'rgba(6,182,212,0.08)',bottom:'20%',left:'10%',animation:'float 7s ease-in-out infinite'}}/>
         <div style={{position:'absolute',inset:0,backgroundImage:'radial-gradient(circle at 1px 1px,rgba(255,255,255,0.04) 1px,transparent 0)',backgroundSize:'40px 40px'}}/>
-        <div style={{maxWidth:900,margin:'0 auto',padding:'0 40px',textAlign:'center',position:'relative',zIndex:1}}>
+        <div className="hero-panel" style={{maxWidth:900,margin:'0 auto',padding:'0 40px',textAlign:'center',position:'relative',zIndex:1,width:'100%'}}>
           <div style={{marginBottom:40,animation:'slide-up 0.6s ease forwards'}}>
-            <div style={{width:200,height:200,borderRadius:20,margin:'0 auto 40px',display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'0 12px 48px rgba(59,130,246,0.3)',background:'linear-gradient(135deg,#2563eb,#7c3aed)',padding:16}}>
-              <img src="https://raw.githubusercontent.com/MANJULAMADHAVI/VIRTUAL-LABS/main/public/logo1.webp?v=2" alt="JNTUA Labs" style={{width:160,height:160,objectFit:'contain',display:'block',maxWidth:'100%',maxHeight:'100%'}}/>
+            <div className="hero-logo-wrap" style={{width:260,height:260,borderRadius:28,margin:'0 auto 40px',display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'0 12px 48px rgba(59,130,246,0.3)',background:'linear-gradient(135deg,#2563eb,#7c3aed)',padding:12,overflow:'hidden',position:'relative'}}>
+              <img src="/logo.svg" alt="JNTUA Labs" style={{width:'88%',height:'88%',objectFit:'contain',display:'block',transform:'scale(1.08)'}}/>
             </div>
-            <h1 style={{fontFamily:'var(--display)',fontSize:64,fontWeight:800,marginBottom:16,animation:'slide-up 0.7s ease 0.1s both'}}>
+            <h1 style={{fontFamily:'var(--display)',fontSize:64,fontWeight:800,marginBottom:16,animation:'slide-up 0.7s ease 0.1s both',lineHeight:1.0}}>
               JNTUA LABS
             </h1>
             <p style={{fontSize:28,fontWeight:700,color:'#3b82f6',letterSpacing:'1px',animation:'slide-up 0.7s ease 0.2s both'}}>
@@ -523,7 +537,7 @@ function LandingPage({onNavigate,onToggleTheme,theme}){
           <p style={{fontSize:18,color:'var(--text2)',lineHeight:1.7,maxWidth:600,margin:'0 auto 40px',animation:'slide-up 0.7s ease 0.3s both'}}>
             A cloud-native AI-powered virtual lab platform where students code, compile, and learn — guided by intelligent mentorship, not shortcuts.
           </p>
-          <div style={{display:'flex',gap:14,justifyContent:'center',flexWrap:'wrap',animation:'slide-up 0.7s ease 0.3s both'}}>
+          <div className="hero-btns" style={{display:'flex',gap:14,justifyContent:'center',flexWrap:'wrap',animation:'slide-up 0.7s ease 0.3s both'}}>
             <button className="btn-primary" onClick={()=>onNavigate('register')} style={{fontSize:16,padding:'14px 36px'}}>
               Start Learning Free
             </button>

@@ -10,16 +10,32 @@ services:
         value: 5000
       - key: NODE_ENV
         value: production
+      - key: DB_URL
+        fromDatabase:
+          name: jntua-labs-db
+          property: connectionString
       - key: DB_HOST
         fromDatabase:
           name: jntua-labs-db
           property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: jntua-labs-db
+          property: port
       - key: DB_USER
-        sync: false
+        fromDatabase:
+          name: jntua-labs-db
+          property: user
       - key: DB_PASSWORD
-        sync: false
+        fromDatabase:
+          name: jntua-labs-db
+          property: password
       - key: DB_NAME
-        value: jntua_labs
+        fromDatabase:
+          name: jntua-labs-db
+          property: database
+      - key: DB_SSL
+        value: true
       - key: JWT_SECRET
         sync: false
       - key: OPENAI_API_KEY
