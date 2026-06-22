@@ -37,11 +37,51 @@ function getDbConfig() {
 
 const db = mysql.createConnection(getDbConfig());
 
+function ensureSchema() {
+    const createUsersTable = `
+        CREATE TABLE IF NOT EXISTS users (
+            id INT PRIMARY KEY AUTO_INCREMENT,
+            full_name VARCHAR(100),
+            email VARCHAR(100) UNIQUE,
+            password VARCHAR(255),
+            role ENUM('student','faculty','admin') DEFAULT 'student',
+            department VARCHAR(100),
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB;
+    `;
+
+    const createProgressTable = `
+        CREATE TABLE IF NOT EXISTS student_progress (
+            id INT PRIMARY KEY AUTO_INCREMENT,
+            student_id INT,
+            total_questions INT DEFAULT 0,
+            solved_questions INT DEFAULT 0,
+            total_marks INT DEFAULT 0,
+            FOREIGN KEY (student_id) REFERENCES users(id)
+        ) ENGINE=InnoDB;
+    `;
+
+    db.query(createUsersTable, (err) => {
+        if (err) {
+            console.error("Failed to create users table:", err.message || err);
+            return;
+        }
+        db.query(createProgressTable, (progressErr) => {
+            if (progressErr) {
+                console.error("Failed to create student_progress table:", progressErr.message || progressErr);
+            } else {
+                console.log("Database schema ensured.");
+            }
+        });
+    });
+}
+
 db.connect((err) => {
     if (err) {
         console.log("MySQL connection error:", err.message);
     } else {
         console.log("MySQL Connected");
+        ensureSchema();
     }
 });
 

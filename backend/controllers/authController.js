@@ -3,34 +3,43 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
 exports.register = async (req, res) => {
-    const { firstName, lastName, email, password, role } = req.body;
+    try {
+        const { firstName, lastName, email, password, role } = req.body || {};
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const full_name = `${firstName} ${lastName}`;
+        if (!firstName || !lastName || !email || !password) {
+            return res.status(400).json({ message: "Missing required registration fields." });
+        }
 
-    const sql = `
-        INSERT INTO users(full_name, email, password, role)
-        VALUES(?, ?, ?, ?)
-    `;
+        const normalizedRole = ['student', 'faculty', 'admin'].includes(role) ? role : 'student';
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const full_name = `${firstName} ${lastName}`;
 
-    db.query(
-        sql,
-        [full_name, email, hashedPassword, role],
-        (err, result) => {
-            if (err) return res.status(500).json(err);
+        const sql = `
+            INSERT INTO users(full_name, email, password, role)
+            VALUES(?, ?, ?, ?)
+        `;
+
+        db.query(sql, [full_name, email, hashedPassword, normalizedRole], (err, result) => {
+            if (err) {
+                console.error("Registration error:", err);
+                return res.status(500).json({ message: "Registration failed.", error: err.message });
+            }
 
             db.query(
                 "INSERT INTO student_progress (student_id, total_questions, solved_questions, total_marks) VALUES (?, 0, 0, 0)",
                 [result.insertId],
                 (progressErr) => {
-                    if (progressErr) console.error("Progress init error:", progressErr);
-                    res.json({
-                        message: "User Registered"
-                    });
+                    if (progressErr) {
+                        console.error("Progress init error:", progressErr);
+                    }
+                    return res.json({ message: "User Registered" });
                 }
             );
-        }
-    );
+        });
+    } catch (error) {
+        console.error("Register exception:", error);
+        return res.status(500).json({ message: "Registration failed.", error: error.message });
+    }
 };
 
 exports.login = (req, res) => {
