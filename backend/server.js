@@ -18,10 +18,12 @@ const allowedOrigins = [
   process.env.CLIENT_URL
 ].filter(Boolean);
 
-// CORS Configuration - Support both local and production environments
+// CORS Configuration - Support local development and Vercel production environments
 const corsOptions = {
   origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
+    const isLocal = !origin || /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
+    const isVercel = /^https:\/\/([a-z0-9-]+\.)?vercel\.app$/.test(origin);
+    if (isLocal || allowedOrigins.includes(origin) || isVercel) {
       callback(null, true);
     } else {
       callback(new Error("Not allowed by CORS"));

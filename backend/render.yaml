@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: jntua-labs-backend
+    name: virtual-labs-backend
     runtime: node
     plan: free
     buildCommand: "npm install"
@@ -43,9 +43,9 @@ services:
       - key: JUDGE0_API_KEY
         sync: false
       - key: CORS_ORIGIN
-        value: https://jntua-labs.vercel.app
+        value: https://virtual-labs-7web.vercel.app
       - key: CLIENT_URL
-        value: https://jntua-labs.vercel.app
+        value: https://virtual-labs-7web.vercel.app
 
 databases:
   - name: jntua-labs-db

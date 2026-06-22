@@ -10,6 +10,10 @@
       "use": "@vercel/static"
     },
     {
+      "src": "logo1_cropped.webp",
+      "use": "@vercel/static"
+    },
+    {
       "src": "logo.svg",
       "use": "@vercel/static"
     },
@@ -29,7 +33,7 @@
     },
     {
       "src": "/api/(.*)",
-      "dest": "https://jntua-labs-backend.onrender.com/api/$1"
+      "dest": "https://virtual-labs-backend.onrender.com/api/$1"
     },
     {
       "src": "/(.*)",

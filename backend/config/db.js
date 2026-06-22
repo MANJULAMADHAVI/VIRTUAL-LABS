@@ -1,9 +1,7 @@
 const mysql = require("mysql2");
 
-function getDbConfig() {
-    const dbUrl = process.env.DB_URL || process.env.MYSQL_URL;
-
-    if (dbUrl) {
+function parseDbUrl(dbUrl) {
+    try {
         const url = new URL(dbUrl);
         return {
             host: url.hostname,
@@ -13,6 +11,18 @@ function getDbConfig() {
             database: url.pathname.replace(/^\/+/, ""),
             ssl: process.env.DB_SSL === "true" ? { rejectUnauthorized: false } : undefined
         };
+    } catch (error) {
+        console.warn("Invalid DB URL provided, falling back to individual DB_* env vars.", error.message);
+        return null;
+    }
+}
+
+function getDbConfig() {
+    const dbUrl = process.env.DB_URL || process.env.MYSQL_URL || process.env.DATABASE_URL;
+    const dbConfig = dbUrl ? parseDbUrl(dbUrl) : null;
+
+    if (dbConfig) {
+        return dbConfig;
     }
 
     return {

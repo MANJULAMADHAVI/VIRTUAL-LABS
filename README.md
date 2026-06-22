@@ -21,8 +21,8 @@ A full-stack virtual programming lab for students and faculty.
   - OPENAI_API_KEY (optional)
   - JUDGE0_API_KEY (optional)
   - JUDGE0_ENDPOINT (optional)
-  - CORS_ORIGIN = https://your-vercel-app.vercel.app
-  - CLIENT_URL = https://your-vercel-app.vercel.app
+  - CORS_ORIGIN = https://virtual-labs-7web.vercel.app
+  - CLIENT_URL = https://virtual-labs-7web.vercel.app
 
 ## Local development
 - Frontend: open [index (2).html](index%20(2).html) in a browser or serve the repo root with a static server.
