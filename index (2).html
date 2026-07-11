@@ -385,7 +385,12 @@ int main() {
 }`,
 };
 
-const API_BASE = "/api";
+const API_BASE = (() => {
+  const host = window.location.hostname;
+  const port = window.location.port;
+  const isLocalStaticDev = (host === 'localhost' || host === '127.0.0.1') && port === '8000';
+  return isLocalStaticDev ? 'http://127.0.0.1:5000/api' : '/api';
+})();
 
 const MONACO_LANGUAGE_MAP = {
   python: 'python',
@@ -449,6 +454,48 @@ const getDeadlineState = (value) => {
   return expired
     ? { color: 'var(--red)', label: `Expired • ${formatDeadline(value)}` }
     : { color: '#f59e0b', label: `Due • ${formatDeadline(value)}` };
+};
+
+const normalizeSessionUser = (userData = {}) => {
+  if (!userData || typeof userData !== 'object') return null;
+
+  const fullName = userData.fullName || `${userData.firstName || ''} ${userData.lastName || ''}`.trim();
+  const firstName = userData.firstName || (fullName ? fullName.split(' ')[0] : '');
+  const lastName = userData.lastName || (fullName ? fullName.split(' ').slice(1).join(' ') : '');
+
+  return {
+    ...userData,
+    role: userData.role || 'student',
+    fullName: fullName || 'Student User',
+    firstName,
+    lastName,
+  };
+};
+
+const restoreSession = () => {
+  try {
+    const savedToken = localStorage.getItem('authToken');
+    const savedUser = localStorage.getItem('user');
+
+    if (!savedToken || !savedUser) {
+      return { user: null, view: 'landing' };
+    }
+
+    const parsedUser = JSON.parse(savedUser);
+    const normalizedUser = normalizeSessionUser(parsedUser);
+
+    if (!normalizedUser || !normalizedUser.role) {
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('user');
+      return { user: null, view: 'landing' };
+    }
+
+    return { user: normalizedUser, view: 'dashboard' };
+  } catch (err) {
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('user');
+    return { user: null, view: 'landing' };
+  }
 };
 
 const apiRequest = async (endpoint, method = "POST", body = null) => {
@@ -2395,15 +2442,9 @@ function SystemMonitor(){
 
 // ─── APP ROOT ──────────────────────────────────────────────────────
 function App(){
-  const [view,setView]=useState('landing');
-  const [user,setUser]=useState(() => {
-    try {
-      const saved = localStorage.getItem('user');
-      return saved ? JSON.parse(saved) : null;
-    } catch (err) {
-      return null;
-    }
-  });
+  const initialSession = restoreSession();
+  const [view,setView]=useState(initialSession.view);
+  const [user,setUser]=useState(initialSession.user);
   const [theme,setTheme]=useState('dark');
 
   const toggleTheme=()=>{
@@ -2425,15 +2466,39 @@ function App(){
     }
   },[]);
 
-  const handleLogin=(userData)=>{localStorage.setItem('authToken', userData.token);localStorage.setItem('user', JSON.stringify(userData));setUser(userData);setView('dashboard');};
-  const handleLogout=()=>{localStorage.removeItem('authToken');localStorage.removeItem('user');setUser(null);setView('landing');};
+  useEffect(()=>{
+    const session = restoreSession();
+    if (session.user && session.view === 'dashboard') {
+      setUser(session.user);
+      setView('dashboard');
+    } else {
+      setUser(null);
+      setView('landing');
+    }
+  },[]);
+
+  const handleLogin=(userData)=>{
+    const normalizedUser = normalizeSessionUser(userData);
+    if (!normalizedUser || !userData?.token) {
+      return;
+    }
+
+    localStorage.setItem('authToken', userData.token);
+    localStorage.setItem('user', JSON.stringify(normalizedUser));
+    setUser(normalizedUser);
+    setView('dashboard');
+  };
+
+  const handleLogout=()=>{
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('user');
+    setUser(null);
+    setView('landing');
+  };
 
   useEffect(()=>{
-    if (localStorage.getItem('authToken') && !user) {
-      try {
-        const saved = localStorage.getItem('user');
-        if (saved) setUser(JSON.parse(saved));
-      } catch (err) {}
+    if (user) {
+      setView('dashboard');
     }
   }, [user]);
 

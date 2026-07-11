@@ -2,6 +2,8 @@ const db = require("../config/db");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
+const JWT_SECRET = process.env.JWT_SECRET || "jntua-labs-development-secret";
+
 exports.register = async (req, res) => {
     try {
         const { firstName, lastName, email, password, role } = req.body || {};
@@ -75,7 +77,7 @@ exports.login = (req, res) => {
                     id: user.id,
                     role: user.role
                 },
-                process.env.JWT_SECRET,
+                JWT_SECRET,
                 { expiresIn: "7d" }
             );
 

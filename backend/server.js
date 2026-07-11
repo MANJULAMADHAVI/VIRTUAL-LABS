@@ -2,9 +2,29 @@ const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
 const http = require("http");
+const path = require("path");
 const { initSocket } = require("./socket/socketServer");
 
-dotenv.config();
+const runtimeConfigProvided = Boolean(
+  process.env.DB_URL ||
+  process.env.MYSQL_URL ||
+  process.env.DATABASE_URL ||
+  process.env.DB_HOST ||
+  process.env.DB_PORT ||
+  process.env.DB_USER ||
+  process.env.DB_PASSWORD ||
+  process.env.DB_NAME ||
+  process.env.JWT_SECRET ||
+  process.env.OPENAI_API_KEY ||
+  process.env.JUDGE0_API_KEY ||
+  process.env.JUDGE0_ENDPOINT ||
+  process.env.CORS_ORIGIN ||
+  process.env.CLIENT_URL
+);
+
+if (!runtimeConfigProvided) {
+  dotenv.config({ path: path.resolve(__dirname, ".env") });
+}
 
 const app = express();
 const server = http.createServer(app);
@@ -69,8 +89,24 @@ app.get("/api/config/judge0", (req, res) => {
   });
 });
 
-const PORT = process.env.PORT || 5000;
+const PORT = Number(process.env.PORT || 5000);
 
-server.listen(PORT, "0.0.0.0", () => {
-    console.log(`Server running on ${PORT}`);
-});
+const startServer = (port) => {
+  const listener = server.listen(port, "0.0.0.0", () => {
+    console.log(`Server running on ${port}`);
+  });
+
+  listener.on("error", (error) => {
+    if (error.code === "EADDRINUSE") {
+      const fallbackPort = port + 1;
+      console.warn(`Port ${port} is busy. Retrying on ${fallbackPort}...`);
+      startServer(fallbackPort);
+      return;
+    }
+
+    console.error("Server startup error:", error.message || error);
+    process.exit(1);
+  });
+};
+
+startServer(PORT);

@@ -1,5 +1,7 @@
 const jwt = require("jsonwebtoken");
 
+const JWT_SECRET = process.env.JWT_SECRET || "jntua-labs-development-secret";
+
 module.exports = (req, res, next) => {
 
     const authHeader = req.header("Authorization");
@@ -18,7 +20,7 @@ module.exports = (req, res, next) => {
     try {
         const verified = jwt.verify(
             token,
-            process.env.JWT_SECRET
+            JWT_SECRET
         );
 
         req.user = verified;
