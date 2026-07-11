@@ -23,6 +23,9 @@ exports.register = async (req, res) => {
 
         db.query(sql, [full_name, email, hashedPassword, normalizedRole], (err, result) => {
             if (err) {
+                if (err.code === "ER_DUP_ENTRY") {
+                    return res.status(409).json({ message: "Email already registered." });
+                }
                 console.error("Registration error:", err);
                 return res.status(500).json({ message: "Registration failed.", error: err.message });
             }
@@ -45,13 +48,20 @@ exports.register = async (req, res) => {
 };
 
 exports.login = (req, res) => {
-    const { email, password } = req.body;
+    const { email, password } = req.body || {};
+
+    if (!email || !password) {
+        return res.status(400).json({ message: "Email and password are required." });
+    }
 
     db.query(
         "SELECT * FROM users WHERE email=?",
         [email],
         async (err, result) => {
-            if (err) return res.status(500).json(err);
+            if (err) {
+                console.error("Login query error:", err);
+                return res.status(500).json({ message: "Login failed.", error: err.message });
+            }
 
             if (result.length === 0) {
                 return res.status(404).json({
@@ -61,37 +71,42 @@ exports.login = (req, res) => {
 
             const user = result[0];
 
-            const validPassword = await bcrypt.compare(
-                password,
-                user.password
-            );
+            try {
+                const validPassword = await bcrypt.compare(
+                    password,
+                    user.password
+                );
 
-            if (!validPassword) {
-                return res.status(401).json({
-                    message: "Invalid Password"
+                if (!validPassword) {
+                    return res.status(401).json({
+                        message: "Invalid Password"
+                    });
+                }
+
+                const token = jwt.sign(
+                    {
+                        id: user.id,
+                        role: user.role
+                    },
+                    JWT_SECRET,
+                    { expiresIn: "7d" }
+                );
+
+                console.log('Login user:', user);
+                console.log('Full name:', user.full_name);
+
+                return res.json({
+                    token,
+                    userId: user.id,
+                    role: user.role,
+                    fullName: user.full_name || '',
+                    firstName: user.full_name ? user.full_name.split(' ')[0] : '',
+                    lastName: user.full_name ? user.full_name.split(' ').slice(1).join(' ') : ''
                 });
+            } catch (tokenErr) {
+                console.error("Login token error:", tokenErr);
+                return res.status(500).json({ message: "Login failed.", error: tokenErr.message });
             }
-
-            const token = jwt.sign(
-                {
-                    id: user.id,
-                    role: user.role
-                },
-                JWT_SECRET,
-                { expiresIn: "7d" }
-            );
-
-            console.log('Login user:', user);
-            console.log('Full name:', user.full_name);
-
-            res.json({
-                token,
-                userId: user.id,
-                role: user.role,
-                fullName: user.full_name || '',
-                firstName: user.full_name ? user.full_name.split(' ')[0] : '',
-                lastName: user.full_name ? user.full_name.split(' ').slice(1).join(' ') : ''
-            });
         }
     );
 };

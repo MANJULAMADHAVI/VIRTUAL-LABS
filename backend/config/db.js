@@ -39,8 +39,30 @@ const pool = mysql.createPool({
     ...getDbConfig(),
     waitForConnections: true,
     connectionLimit: 10,
-    queueLimit: 0
+    queueLimit: 0,
+    enableKeepAlive: true,
+    keepAliveInitialDelay: 30000,
+    connectTimeout: 60000,
+    dateStrings: true
 });
+
+pool.on("error", (err) => {
+    console.error("Unexpected MySQL pool error:", err.message || err);
+});
+
+pool.on("connection", (connection) => {
+    connection.on("error", (err) => {
+        console.error("MySQL connection error:", err.message || err);
+    });
+});
+
+setInterval(() => {
+    pool.query("SELECT 1", (pingErr) => {
+        if (pingErr) {
+            console.warn("MySQL heartbeat ping failed:", pingErr.message || pingErr);
+        }
+    });
+}, 30000);
 
 function ensureSchema() {
     const createUsersTable = `
