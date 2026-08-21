@@ -60,16 +60,32 @@ exports.getProgressStats = (req, res) => {
 };
 
 exports.getUsersByRole = (req, res) => {
-  const sql = `
-    SELECT role, COUNT(*) as count 
-    FROM users 
-    GROUP BY role
-  `;
+  // If a specific role is requested, return detailed user rows for that role
+  const role = req.query.role;
+  if (role) {
+    const sql = `
+      SELECT u.id, u.full_name, u.email, u.role, COALESCE(sp.solved_questions,0) as solved_questions, COALESCE(sp.total_marks,0) as total_marks, u.created_at
+      FROM users u
+      LEFT JOIN student_progress sp ON u.id = sp.student_id
+      WHERE u.role = ?
+      ORDER BY u.full_name ASC
+    `;
+    db.query(sql, [role], (err, result) => {
+      if (err) return res.status(500).json(err);
+      return res.json(result);
+    });
+  } else {
+    const sql = `
+      SELECT role, COUNT(*) as count 
+      FROM users 
+      GROUP BY role
+    `;
 
-  db.query(sql, (err, result) => {
-    if (err) return res.status(500).json(err);
-    res.json(result);
-  });
+    db.query(sql, (err, result) => {
+      if (err) return res.status(500).json(err);
+      res.json(result);
+    });
+  }
 };
 
 exports.getTopPerformers = (req, res) => {

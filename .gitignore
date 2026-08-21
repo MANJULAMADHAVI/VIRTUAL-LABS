@@ -39,3 +39,4 @@ test.html
 # Temporary files
 update-user.js
 fix_quotes.py
+.vercel

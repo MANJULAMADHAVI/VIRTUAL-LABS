@@ -1,0 +1,78 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>JNTUA Labs Demo</title>
+  <style>body{font-family:system-ui,Segoe UI,Roboto,Arial;padding:20px}button{margin:6px}</style>
+</head>
+<body>
+  <h2>JNTUA Labs Live Demo</h2>
+  <div>
+    <button id="registerBtn">Register Demo User</button>
+    <button id="loginBtn">Login Demo User</button>
+    <button id="createQBtn">Create Question (auth)</button>
+    <button id="listQBtn">List Questions</button>
+    <button id="socketBtn">Socket Roundtrip</button>
+  </div>
+  <pre id="out" style="background:#f4f4f4;padding:12px;border-radius:6px;height:320px;overflow:auto"></pre>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const out = (v)=>{ const el=document.getElementById('out'); el.textContent = new Date().toISOString() + ' - ' + JSON.stringify(v,null,2) + '\n\n' + el.textContent };
+
+    async function api(path, opts={}){
+      const res = await fetch('/api' + path, opts);
+      const text = await res.text();
+      try{ return JSON.parse(text); } catch(e){ return text; }
+    }
+
+    document.getElementById('registerBtn').onclick = async ()=>{
+      const email = 'ui_demo_'+Date.now()+'@example.com';
+      const body = { firstName: 'UI', lastName: 'Demo', email, password: 'Password123!', role: 'faculty' };
+      const r = await api('/auth/register', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)});
+      out({action:'register', body, result:r});
+      // save email for convenience
+      localStorage.setItem('demo_email', email);
+    };
+
+    document.getElementById('loginBtn').onclick = async ()=>{
+      const email = localStorage.getItem('demo_email') || prompt('Email to login');
+      const body = { email, password: 'Password123!' };
+      const r = await api('/auth/login', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)});
+      out({action:'login', body:{email}, result:r});
+      if (r && r.token){ localStorage.setItem('token', r.token); }
+    };
+
+    document.getElementById('createQBtn').onclick = async ()=>{
+      const token = localStorage.getItem('token');
+      if(!token){ alert('Login first'); return; }
+      const body = { title: 'Frontend Demo Question '+Date.now(), description:'Created from demo page', language:'C', difficulty:'Easy', marks:5, subject:'Demo' };
+      const r = await api('/questions/add', { method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+token}, body: JSON.stringify(body) });
+      out({action:'createQuestion', body, result:r});
+    };
+
+    document.getElementById('listQBtn').onclick = async ()=>{
+      const r = await api('/questions'); out({action:'listQuestions', result:r});
+    };
+
+    document.getElementById('socketBtn').onclick = async ()=>{
+      try{
+        const socket = io();
+        out({socket:'connecting...'});
+        socket.on('connect', ()=>{
+          out({socket:'connected', id:socket.id});
+          socket.emit('join-room','demo-ui-room');
+          socket.emit('assistant-message',{roomId:'demo-ui-room', text:'hello from demo UI', ts:Date.now()});
+        });
+        socket.on('assistant-message', (p)=>{
+          out({socket:'assistant-message-received', payload:p});
+          socket.disconnect();
+        });
+        setTimeout(()=>{ try{ socket.disconnect(); out({socket:'socket-timeout'}); }catch(e){} },5000);
+      }catch(e){ out({socketError:e.message}); }
+    };
+
+    out({status:'demo-ready', info:'Use buttons to exercise site (register -> login -> create -> list -> socket)'});
+  </script>
+</body>
+</html>

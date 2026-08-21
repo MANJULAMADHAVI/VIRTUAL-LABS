@@ -18,20 +18,26 @@ function parseDbUrl(dbUrl) {
 }
 
 function getDbConfig() {
-    const dbUrl = process.env.DB_URL || process.env.MYSQL_URL || process.env.DATABASE_URL;
+    const dbUrl = process.env.DB_URL || process.env.MYSQL_URL || process.env.DATABASE_URL || process.env.MYSQLDATABASE_URL;
     const dbConfig = dbUrl ? parseDbUrl(dbUrl) : null;
 
     if (dbConfig) {
         return dbConfig;
     }
 
+    const mysqlHost = process.env.DB_HOST || process.env.MYSQLHOST || process.env.MYSQL_HOSTNAME || process.env.MYSQL_HOST || "localhost";
+    const mysqlPort = Number(process.env.DB_PORT || process.env.MYSQLPORT || process.env.MYSQL_PORT || 3306);
+    const mysqlUser = process.env.DB_USER || process.env.MYSQLUSER || process.env.MYSQL_USER || "root";
+    const mysqlPassword = process.env.DB_PASSWORD || process.env.MYSQLPASSWORD || process.env.MYSQL_PASSWORD || "";
+    const mysqlDatabase = process.env.DB_NAME || process.env.MYSQLDATABASE || process.env.MYSQL_DB || process.env.MYSQL_NAME || "jntua_labs";
+
     return {
-        host: process.env.DB_HOST || "localhost",
-        port: Number(process.env.DB_PORT || 3306),
-        user: process.env.DB_USER || "root",
-        password: process.env.DB_PASSWORD || "",
-        database: process.env.DB_NAME || "jntua_labs",
-        ssl: process.env.DB_SSL === "true" ? { rejectUnauthorized: false } : undefined
+        host: mysqlHost,
+        port: mysqlPort,
+        user: mysqlUser,
+        password: mysqlPassword,
+        database: mysqlDatabase,
+        ssl: process.env.DB_SSL === "true" || process.env.MYSQL_SSL === "true" ? { rejectUnauthorized: false } : undefined
     };
 }
 
@@ -46,6 +52,12 @@ const pool = mysql.createPool({
     dateStrings: true
 });
 
+const databaseStatus = {
+    connected: false,
+    schemaReady: false,
+    error: null
+};
+
 pool.on("error", (err) => {
     console.error("Unexpected MySQL pool error:", err.message || err);
 });
@@ -56,13 +68,31 @@ pool.on("connection", (connection) => {
     });
 });
 
-setInterval(() => {
-    pool.query("SELECT 1", (pingErr) => {
-        if (pingErr) {
-            console.warn("MySQL heartbeat ping failed:", pingErr.message || pingErr);
-        }
-    });
-}, 30000);
+let _heartbeat = null;
+function startHeartbeat(intervalMs = 30000) {
+    if (_heartbeat) return;
+    _heartbeat = setInterval(() => {
+        pool.query("SELECT 1", (pingErr) => {
+            if (pingErr) {
+                const msg = pingErr.message || pingErr;
+                if (String(msg).toLowerCase().includes('pool is closed')) {
+                    console.warn('MySQL heartbeat stopped: pool is closed. Clearing heartbeat.');
+                    clearInterval(_heartbeat);
+                    _heartbeat = null;
+                    return;
+                }
+                console.warn("MySQL heartbeat ping failed:", msg);
+            }
+        });
+    }, intervalMs);
+}
+
+function stopHeartbeat() {
+    if (_heartbeat) {
+        clearInterval(_heartbeat);
+        _heartbeat = null;
+    }
+}
 
 function ensureSchema() {
     const createUsersTable = `
@@ -174,6 +204,7 @@ function ensureSchema() {
             const ensureNextColumn = (columnIndex = 0) => {
                 if (columnIndex >= missingColumns.length) {
                     console.log("Database schema ensured.");
+                    databaseStatus.schemaReady = true;
                     return;
                 }
 
@@ -203,14 +234,43 @@ function ensureSchema() {
     runSchemaStep();
 }
 
-pool.getConnection((err, connection) => {
-    if (err) {
-        console.error("MySQL connection error:", err.message || err);
-        return;
-    }
-    console.log("MySQL Connected");
-    if (connection) connection.release();
-    ensureSchema();
+const databaseReady = new Promise((resolve, reject) => {
+    pool.getConnection((err, connection) => {
+        if (err) {
+            databaseStatus.error = err.message || String(err);
+            console.error("MySQL connection error:", databaseStatus.error);
+            reject(err);
+            return;
+        }
+
+        console.log("MySQL Connected");
+        databaseStatus.connected = true;
+        if (connection) connection.release();
+        ensureSchema();
+        startHeartbeat();
+        pool.query("SELECT 1", (queryError) => {
+            if (queryError) {
+                databaseStatus.error = queryError.message || String(queryError);
+                reject(queryError);
+                return;
+            }
+            resolve();
+        });
+    });
+});
+
+function getDatabaseStatus() {
+    return {
+        connected: databaseStatus.connected,
+        schemaReady: databaseStatus.schemaReady,
+        error: databaseStatus.error ? String(databaseStatus.error) : null
+    };
+}
+
+process.on('exit', () => {
+    stopHeartbeat();
 });
 
 module.exports = pool;
+module.exports.databaseReady = databaseReady;
+module.exports.getDatabaseStatus = getDatabaseStatus;

@@ -77,7 +77,7 @@ exports.submitCode = async (req, res) => {
   }
 
   const judge0Key = process.env.JUDGE0_API_KEY;
-  const judge0Endpoint = process.env.JUDGE0_ENDPOINT || "https://ce.judge0.com";
+  const judge0Endpoint = process.env.JUDGE0_ENDPOINT;
   let output = "";
   let status = "Pending";
 
@@ -124,8 +124,8 @@ exports.submitCode = async (req, res) => {
       status = "Rejected";
     }
   } else {
-    output = "Judge0 API endpoint not configured. Please set JUDGE0_ENDPOINT in .env file.";
-    status = "Pending";
+    output = "Code execution is disabled because JUDGE0_ENDPOINT is not configured.";
+    status = "Skipped";
   }
 
   const sql = `

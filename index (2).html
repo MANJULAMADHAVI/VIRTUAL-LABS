@@ -1050,7 +1050,7 @@ function StudentHome({setPage,user}){
         <div className="card" style={{padding:20}}>
           <div style={{fontWeight:700,fontSize:15,marginBottom:16}}>Quick Access</div>
           {LANGUAGES.map(l=>(
-            <button key={l.id} onClick={()=>setPage('editor')} style={{display:'flex',alignItems:'center',gap:10,width:'100%',background:'var(--bg3)',border:'1px solid var(--border)',borderRadius:10,padding:'10px 12px',marginBottom:8,cursor:'pointer',transition:'all 0.2s',color:'var(--text)',fontFamily:'var(--font)',fontSize:13}} onMouseOver={e=>e.currentTarget.style.borderColor=l.color} onMouseOut={e=>e.currentTarget.style.borderColor='var(--border)'}>
+            <button key={l.id} onClick={()=>{ localStorage.setItem('jntua_lab_lang', l.id); setPage('editor'); }} style={{display:'flex',alignItems:'center',gap:10,width:'100%',background:'var(--bg3)',border:'1px solid var(--border)',borderRadius:10,padding:'10px 12px',marginBottom:8,cursor:'pointer',transition:'all 0.2s',color:'var(--text)',fontFamily:'var(--font)',fontSize:13}} onMouseOver={e=>e.currentTarget.style.borderColor=l.color} onMouseOut={e=>e.currentTarget.style.borderColor='var(--border)'}>
               <span style={{fontSize:16}}>{l.icon}</span>
               <span style={{fontWeight:500}}>{l.name}</span>
               <span style={{marginLeft:'auto',fontSize:11,color:'var(--text3)'}}>{l.desc}</span>
@@ -1100,7 +1100,7 @@ function LabSelection({setPage}){
         {LANGUAGES.map(l=>{
           const metrics = getLabMetrics(l.id);
           return (
-            <div key={l.id} className="card" style={{padding:28,cursor:'pointer',border:selected===l.id?`1px solid ${l.color}`:'1px solid var(--border)',position:'relative',overflow:'hidden'}} onClick={()=>{setSelected(l.id);setTimeout(()=>setPage('editor'),300);}}>
+            <div key={l.id} className="card" style={{padding:28,cursor:'pointer',border:selected===l.id?`1px solid ${l.color}`:'1px solid var(--border)',position:'relative',overflow:'hidden'}} onClick={()=>{setSelected(l.id); localStorage.setItem('jntua_lab_lang', l.id); setTimeout(()=>setPage('editor'),300);}}>
               <div style={{position:'absolute',top:-30,right:-30,width:120,height:120,borderRadius:'50%',background:l.bg,pointerEvents:'none'}}/>
               <div style={{display:'flex',alignItems:'center',gap:14,marginBottom:16}}>
                 <div style={{fontSize:36}}>{l.icon}</div>
@@ -1121,7 +1121,7 @@ function LabSelection({setPage}){
                   </div>
                 ))}
               </div>
-              <button className="btn-primary" style={{width:'100%',marginTop:16,background:`linear-gradient(135deg,${l.tagColor},${l.tagColor}99)`}} onClick={()=>setPage('editor')}>
+              <button className="btn-primary" style={{width:'100%',marginTop:16,background:`linear-gradient(135deg,${l.tagColor},${l.tagColor}99)`}} onClick={()=>{ localStorage.setItem('jntua_lab_lang', l.id); setPage('editor'); }}>
                 Open Lab →
               </button>
             </div>
@@ -1134,8 +1134,8 @@ function LabSelection({setPage}){
 
 // ─── CODE EDITOR ───────────────────────────────────────────────────
 function CodeEditor({user}){
-  const [lang,setLang]=useState('python');
-  const [code,setCode]=useState(CODE_SAMPLES.python);
+  const [lang,setLang]=useState(()=> localStorage.getItem('jntua_lab_lang') || 'python');
+  const [code,setCode]=useState(()=> CODE_SAMPLES[ localStorage.getItem('jntua_lab_lang') || 'python' ] || CODE_SAMPLES.python);
   const [output,setOutput]=useState('');
   const [running,setRunning]=useState(false);
   const [aiOpen,setAiOpen]=useState(true);
@@ -2064,13 +2064,31 @@ function QuestionManager(){
 }
 
 function StudentTracker(){
-  const students=[
-    {name:'Priya Reddy',id:'CS22047',score:94,solved:52,status:'Online',lang:'Python',time:'2h 15m'},
-    {name:'Karthik M',id:'CS22023',score:87,solved:49,status:'Online',lang:'C++',time:'1h 50m'},
-    {name:'Anjali Singh',id:'CS22031',score:82,solved:44,status:'Online',lang:'Java',time:'3h 02m'},
-    {name:'Rahul Das',id:'CS22015',score:76,solved:41,status:'Idle',lang:'Python',time:'0h 45m'},
-    {name:'Divya Kumar',id:'CS22058',score:71,solved:38,status:'Offline',lang:'JS',time:'—'},
-  ];
+  const [students,setStudents]=useState([]);
+
+  useEffect(()=>{
+    let mounted=true;
+    (async ()=>{
+      try{
+        let data = await apiRequest('/analytics/users/by-role?role=student','GET');
+        if(!mounted) return;
+        // Some deployments may still return aggregated counts for this endpoint
+        if (Array.isArray(data) && data.length>0 && data[0].count!==undefined && !data[0].id) {
+          // fallback to top-performers which returns detailed student rows
+          const tp = await apiRequest('/analytics/top-performers?limit=100','GET');
+          if(!mounted) return;
+          setStudents(Array.isArray(tp)?tp:[]);
+        } else {
+          setStudents(Array.isArray(data)?data:[]);
+        }
+      }catch(err){
+        console.error('Failed to load students',err);
+        setStudents([]);
+      }
+    })();
+    return ()=>{ mounted=false };
+  },[]);
+
   return(
     <div style={{animation:'slide-up 0.5s ease'}}>
       <div style={{marginBottom:24}}>
@@ -2082,20 +2100,20 @@ function StudentTracker(){
           <span>Student</span><span style={{textAlign:'center'}}>Score</span><span style={{textAlign:'center'}}>Solved</span><span style={{textAlign:'center'}}>Status</span><span style={{textAlign:'center'}}>Language</span><span style={{textAlign:'center'}}>Time</span>
         </div>
         {students.map(s=>(
-          <div key={s.name} style={{display:'grid',gridTemplateColumns:'2fr 80px 80px 80px 100px 80px',padding:'14px 20px',borderBottom:'1px solid var(--border)',alignItems:'center',transition:'background 0.15s',cursor:'pointer'}} onMouseOver={e=>e.currentTarget.style.background='rgba(255,255,255,0.02)'} onMouseOut={e=>e.currentTarget.style.background='none'}>
+          <div key={s.id||s.email} style={{display:'grid',gridTemplateColumns:'2fr 80px 80px 80px 100px 80px',padding:'14px 20px',borderBottom:'1px solid var(--border)',alignItems:'center',transition:'background 0.15s',cursor:'pointer'}} onMouseOver={e=>e.currentTarget.style.background='rgba(255,255,255,0.02)'} onMouseOut={e=>e.currentTarget.style.background='none'}>
             <div style={{display:'flex',alignItems:'center',gap:12}}>
-              <div style={{width:32,height:32,borderRadius:'50%',background:`hsl(${s.name.charCodeAt(0)*7},60%,30%)`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:11,fontWeight:700,color:'#fff',flexShrink:0}}>
-                {s.name.split(' ').map(w=>w[0]).join('')}
+              <div style={{width:32,height:32,borderRadius:'50%',background:`hsl(${(s.full_name||s.email||'').charCodeAt(0)*7},60%,30%)`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:11,fontWeight:700,color:'#fff',flexShrink:0}}>
+                {(s.full_name||s.email||'').split(' ').map(w=>w[0]).join('')}
               </div>
-              <div><div style={{fontSize:14,fontWeight:600}}>{s.name}</div><div style={{fontSize:11,color:'var(--text3)'}}>{s.id}</div></div>
+              <div><div style={{fontSize:14,fontWeight:600}}>{s.full_name || s.email}</div><div style={{fontSize:11,color:'var(--text3)'}}>{s.email || (s.id?`ID: ${s.id}`:'')}</div></div>
             </div>
-            <div style={{textAlign:'center',fontWeight:700,color:'var(--accent2)'}}>{s.score}%</div>
-            <div style={{textAlign:'center',fontSize:13,fontWeight:600}}>{s.solved}</div>
+            <div style={{textAlign:'center',fontWeight:700,color:'var(--accent2)'}}>{(s.total_marks!=null)?`${s.total_marks}%`:'—'}</div>
+            <div style={{textAlign:'center',fontSize:13,fontWeight:600}}>{s.solved_questions!=null?s.solved_questions:'—'}</div>
             <div style={{textAlign:'center'}}>
-              <span className={`badge badge-${s.status==='Online'?'green':s.status==='Idle'?'amber':'red'}`} style={{fontSize:10}}>{s.status}</span>
+              <span className={`badge badge-${'grey'}`} style={{fontSize:10}}>{'—'}</span>
             </div>
-            <div style={{textAlign:'center'}}><span className="badge badge-blue" style={{fontSize:10}}>{s.lang}</span></div>
-            <div style={{textAlign:'center',fontSize:12,color:'var(--text3)'}}>{s.time}</div>
+            <div style={{textAlign:'center'}}><span className="badge badge-blue" style={{fontSize:10}}>{'—'}</span></div>
+            <div style={{textAlign:'center',fontSize:12,color:'var(--text3)'}}>{s.created_at?new Date(s.created_at).toLocaleDateString():'—'}</div>
           </div>
         ))}
       </div>

@@ -4,16 +4,23 @@ const dotenv = require("dotenv");
 const http = require("http");
 const path = require("path");
 const { initSocket } = require("./socket/socketServer");
+const db = require("./config/db");
 
 const runtimeConfigProvided = Boolean(
   process.env.DB_URL ||
   process.env.MYSQL_URL ||
   process.env.DATABASE_URL ||
+  process.env.MYSQLDATABASE_URL ||
   process.env.DB_HOST ||
   process.env.DB_PORT ||
   process.env.DB_USER ||
   process.env.DB_PASSWORD ||
   process.env.DB_NAME ||
+  process.env.MYSQLHOST ||
+  process.env.MYSQLPORT ||
+  process.env.MYSQLUSER ||
+  process.env.MYSQLPASSWORD ||
+  process.env.MYSQLDATABASE ||
   process.env.JWT_SECRET ||
   process.env.OPENAI_API_KEY ||
   process.env.JUDGE0_API_KEY ||
@@ -59,7 +66,26 @@ app.use(express.json());
 
 // Health check endpoint for deployment
 app.get("/api/health", (req, res) => {
-  res.json({ status: "ok", timestamp: new Date().toISOString(), service: "backend" });
+  const database = db.getDatabaseStatus();
+  res.status(database.connected ? 200 : 503).json({
+    status: database.connected ? "ok" : "degraded",
+    database,
+    timestamp: new Date().toISOString(),
+    service: "backend"
+  });
+});
+
+app.use(async (req, res, next) => {
+  if (!req.path.startsWith("/api/") || req.path === "/api/health") return next();
+  try {
+    await db.databaseReady;
+    return next();
+  } catch (error) {
+    return res.status(503).json({
+      message: "Database is unavailable. Please try again shortly.",
+      error: process.env.NODE_ENV === "production" ? undefined : error.message
+    });
+  }
 });
 
 app.use("/api/auth", require("./routes/authRoutes"));
