@@ -33,7 +33,7 @@
     },
     {
       "src": "/api/(.*)",
-      "dest": "https://virtual-labs-backend.onrender.com/api/$1"
+      "dest": "https://virtual-labs-ql2i.onrender.com/api/$1"
     },
     {
       "src": "/(.*)",
